@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colors, spacing, textVariants } from '@/theme';
+
 export default function IndexScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Knack</Text>
+      <Text style={styles.title}>Knack</Text>
     </View>
   );
 }
@@ -13,9 +15,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.surface.canvas,
+    padding: spacing.xl,
   },
-  text: {
-    fontSize: 20,
-    fontWeight: '600',
+  title: {
+    ...textVariants.display,
+    color: colors.text.ink,
   },
 });
