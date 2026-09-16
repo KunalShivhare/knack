@@ -5,6 +5,7 @@ import {
   LEVELS,
   OnboardingShell,
   OptionTile,
+  hobbyExamples,
   stepIsComplete,
   useOnboarding,
 } from '@/modules/onboarding';
@@ -53,7 +54,7 @@ export default function GoalScreen() {
         hint="Describe the thing you want to be able to do, not a level."
         value={answers.target}
         onChangeText={(target) => answer({ target })}
-        placeholder="Play a full song start to finish"
+        placeholder={hobbyExamples(answers.hobby).goal}
         autoCapitalize="sentences"
         returnKeyType="done"
         onSubmitEditing={() => stepIsComplete.goal(answers) && next()}

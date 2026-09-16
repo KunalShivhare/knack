@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   OnboardingShell,
   TIME_BUDGETS,
+  hobbyExamples,
   stepIsComplete,
   useOnboarding,
   type TimeBudgetId,
@@ -54,7 +55,7 @@ export default function MotivationScreen() {
         hint="Optional, but it changes the plan more than anything else here."
         value={answers.motivation}
         onChangeText={(motivation) => answer({ motivation })}
-        placeholder="I want to play at my sister's wedding in March."
+        placeholder={hobbyExamples(answers.hobby).why}
         autoCapitalize="sentences"
       />
     </OnboardingShell>

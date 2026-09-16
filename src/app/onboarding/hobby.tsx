@@ -20,7 +20,7 @@ export default function HobbyScreen() {
       step={2}
       icon="🎯"
       title={`What do you want to get good at, ${firstName}?`}
-      subtitle="Anything counts. Pick one to start — you can add more later."
+      subtitle="Anything counts. One at a time, so it gets your full attention."
       ctaDisabled={!stepIsComplete.hobby(answers)}
       onBack={() => router.back()}
       onNext={next}

@@ -52,10 +52,76 @@ export const HOBBY_SUGGESTIONS: readonly ChipOption[] = [
   { id: 'pottery', label: 'Pottery', emoji: '🏺' },
 ] as const;
 
-/** The suggestion emoji for a hobby typed or picked in onboarding, if it is one of the suggestions. */
+/**
+ * Glyphs for hobbies people type rather than pick: every hobby the welcome
+ * drift advertises, so one shown there never turns into a bare initial later.
+ */
+const HOBBY_EMOJI = new Map<string, string>([
+  ...HOBBY_SUGGESTIONS.map((option): [string, string] => [option.id, option.emoji ?? '']),
+  ['reading', '📖'],
+  ['books', '📖'],
+  ['knitting', '🧶'],
+  ['crochet', '🧶'],
+  ['gardening', '🪴'],
+  ['coffee', '☕'],
+  ['violin', '🎻'],
+  ['skateboarding', '🛹'],
+  ['piano', '🎹'],
+  ['sewing', '🧵'],
+  ['embroidery', '🧵'],
+  ['surfing', '🏄'],
+  ['cycling', '🚴'],
+  ['baking', '🍞'],
+  ['sourdough', '🍞'],
+  ['archery', '🏹'],
+  ['boxing', '🥊'],
+  ['darts', '🎯'],
+]);
+
+export type HobbyExamples = { goal: string; why: string };
+
+/**
+ * Placeholder answers for the goal and motivation fields. An example about a
+ * different hobby teaches the wrong thing, so each suggestion has its own and
+ * anything else gets one that holds for any hobby. Goals stay short enough to
+ * fit the single-line field on a phone.
+ */
+const HOBBY_EXAMPLES = new Map<string, HobbyExamples>([
+  ['chess', { goal: 'Win a game without a blunder', why: 'My friend beats me every weekend and I want that to stop.' }],
+  ['guitar', { goal: 'Play a full song start to finish', why: "I want to play at my sister's wedding in March." }],
+  ['poker', { goal: 'Finish a home game up, not down', why: 'Friday games with friends keep costing me money.' }],
+  ['photography', { goal: 'Take portraits worth framing', why: 'I bought a camera and only ever use auto.' }],
+  ['drawing', { goal: 'Sketch a face that looks like them', why: 'I drew all the time as a kid and want it back.' }],
+  ['cooking', { goal: 'Cook dinner for six, no recipe', why: "I'm hosting my family for the holidays." }],
+  ['running', { goal: 'Run 5 km without stopping', why: "There's a charity 5K in October." }],
+  ['pottery', { goal: 'Throw four matching mugs', why: 'I want to make gifts instead of buying them.' }],
+]);
+
+const ANY_HOBBY_EXAMPLES: HobbyExamples = {
+  goal: "Finish one thing I'm proud of",
+  why: "I want something to do that isn't a screen.",
+};
+
+/**
+ * Matched word by word, so "Bread baking" and "speed reading" find theirs
+ * while "bread" never matches "read". A Map, because a plain object would
+ * answer a hobby called "constructor".
+ */
+function findByWord<T>(hobby: string, table: ReadonlyMap<string, T>): T | undefined {
+  for (const word of hobby.toLowerCase().split(/[^a-z]+/)) {
+    const hit = table.get(word);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+/** The glyph for a hobby, picked or typed; undefined when there is no fitting one. */
 export function hobbyEmoji(hobby: string): string | undefined {
-  const key = hobby.trim().toLowerCase();
-  return HOBBY_SUGGESTIONS.find((option) => option.label.toLowerCase() === key)?.emoji;
+  return findByWord(hobby, HOBBY_EMOJI);
+}
+
+export function hobbyExamples(hobby: string): HobbyExamples {
+  return findByWord(hobby, HOBBY_EXAMPLES) ?? ANY_HOBBY_EXAMPLES;
 }
 
 export type LevelOption = { id: LevelId; label: string; description: string };
