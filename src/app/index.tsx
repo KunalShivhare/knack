@@ -1,6 +1,7 @@
 import { Redirect, type Href } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { useJourney } from '@/modules/journey';
 import {
   firstIncompleteStep,
   useOnboarding,
@@ -21,14 +22,16 @@ const STEP_ROUTES: Record<OnboardingStep, Href> = {
 };
 
 /**
- * The launch gate. Reads the saved run and sends the user to the furthest step
- * they had not finished, so closing the app mid-onboarding costs them nothing.
+ * The launch gate. Reads what is saved and resumes at the furthest point: the
+ * plan if there is one, generation if onboarding finished without one (the app
+ * closed mid-stream), otherwise the first unanswered step.
  */
 export default function IndexScreen() {
   const { hydrated, completed, answers } = useOnboarding();
+  const journey = useJourney();
 
   // Redirecting before storage is read would flash the wrong screen.
-  if (!hydrated) {
+  if (!hydrated || !journey.hydrated) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator color={colors.brand.default} />
@@ -36,7 +39,8 @@ export default function IndexScreen() {
     );
   }
 
-  if (completed) return <Redirect href="/home" />;
+  if (journey.journey) return <Redirect href="/path" />;
+  if (completed) return <Redirect href="/generating" />;
 
   const step = firstIncompleteStep(answers);
 

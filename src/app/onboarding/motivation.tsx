@@ -22,7 +22,7 @@ export default function MotivationScreen() {
 
   const finish = () => {
     complete();
-    router.replace('/home');
+    router.replace('/generating');
   };
 
   return (
