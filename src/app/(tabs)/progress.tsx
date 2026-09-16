@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,6 +33,12 @@ export default function ProgressScreen() {
   // which is a better trade than re-rendering on a timer.
   const [now] = useState(() => new Date());
 
+  // Starting over deletes the plan and every session logged against it, so it
+  // asks first — inline, like striking a technique, because React Native's
+  // Alert does nothing on web.
+  const [confirmingReset, setConfirmingReset] = useState(false);
+  const scroll = useRef<ScrollView>(null);
+
   if (!journey) return null;
 
   const mastery = masteryOf(journey);
@@ -49,9 +55,14 @@ export default function ProgressScreen() {
 
   return (
     <ScrollView
+      ref={scroll}
       showsVerticalScrollIndicator={false}
-      style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}
+      // A margin, not padding: the status bar is translucent, so content
+      // scrolled into padding would run under the clock.
+      style={[styles.root, { marginTop: insets.top }]}
+      contentContainerStyle={styles.content}
+      // The confirmation grows the page below the fold; bring it into view.
+      onContentSizeChange={() => confirmingReset && scroll.current?.scrollToEnd()}
     >
       <View style={styles.inner}>
         <View style={styles.heading}>
@@ -116,7 +127,29 @@ export default function ProgressScreen() {
           </Card>
         ) : null}
 
-        <Button variant="ghost" size="md" label="Start a new plan" style={styles.newPlan} onPress={startNewPlan} />
+        {confirmingReset ? (
+          <View style={styles.confirm}>
+            <Text variant="body" color="secondary" align="center">
+              This deletes your {journey.meta.hobby} plan and all the practice logged on it.
+            </Text>
+            <Button block label="Delete it and start over" onPress={startNewPlan} />
+            <Button
+              variant="ghost"
+              size="md"
+              label="Keep this plan"
+              style={styles.newPlan}
+              onPress={() => setConfirmingReset(false)}
+            />
+          </View>
+        ) : (
+          <Button
+            variant="ghost"
+            size="md"
+            label="Start a new plan"
+            style={styles.newPlan}
+            onPress={() => setConfirmingReset(true)}
+          />
+        )}
       </View>
     </ScrollView>
   );
@@ -150,7 +183,7 @@ function Stat({ value, label }: { value: number; label: string }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface.canvas },
-  content: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
+  content: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xxxl },
   inner: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center', gap: spacing.lg },
   heading: { gap: spacing.xxs, marginBottom: spacing.sm },
   card: {
@@ -167,4 +200,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowTitle: { flex: 1 },
   newPlan: { alignSelf: 'center' },
+  confirm: { gap: spacing.md, marginTop: spacing.sm },
 });

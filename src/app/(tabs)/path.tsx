@@ -37,8 +37,10 @@ export default function PathScreen() {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}
+      // A margin, not padding: the status bar is translucent, so content
+      // scrolled into padding would run under the clock.
+      style={[styles.root, { marginTop: insets.top }]}
+      contentContainerStyle={styles.content}
     >
       <View style={styles.inner}>
         <View style={styles.header}>
@@ -117,7 +119,7 @@ function noteFor(technique: JourneyTechnique, titles: Map<string, string>): stri
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface.canvas },
-  content: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
+  content: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xxxl },
   inner: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center', gap: spacing.xl },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   headerCopy: { flex: 1, gap: spacing.xxs },
