@@ -78,6 +78,9 @@ export function OnboardingShell({
       </View>
 
       <ScrollView
+        // A desktop browser's scrollbar takes width from the page and knocks
+        // the centred layout off axis; every screen in the app hides it.
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"

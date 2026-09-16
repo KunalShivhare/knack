@@ -34,4 +34,5 @@ export const storage = {
 /** Every persisted key in the app, in one place, so collisions are visible. */
 export const storageKeys = {
   onboarding: 'knack:onboarding:v1',
+  journeys: 'knack:journeys:v1',
 } as const;

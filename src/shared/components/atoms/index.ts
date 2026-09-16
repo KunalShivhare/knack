@@ -5,6 +5,7 @@ export { Image } from './Image';
 export { Input } from './Input';
 export { LevelMeter } from './LevelMeter';
 export { ProgressBar } from './ProgressBar';
+export { Reveal } from './Reveal';
 export { Text } from './Text';
 
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
@@ -14,4 +15,5 @@ export type { ImageProps } from './Image';
 export type { InputProps } from './Input';
 export type { LevelMeterProps } from './LevelMeter';
 export type { ProgressBarProps } from './ProgressBar';
+export type { RevealProps } from './Reveal';
 export type { TextProps } from './Text';

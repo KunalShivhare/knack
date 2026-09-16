@@ -104,8 +104,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     textAlignVertical: 'top',
   },
-  // Web draws its own focus ring on top of ours; native ignores the property.
-  focused: { outlineWidth: 0 },
+  // Web draws its own focus ring on top of our border. Chrome's ring is
+  // `outline-style: auto`, which ignores a zero width, so the style has to change
+  // too; a solid outline of zero width draws nothing. Native ignores both.
+  focused: { outlineStyle: 'solid', outlineWidth: 0 },
   error: {
     color: colors.status.error,
     marginTop: spacing.xs,

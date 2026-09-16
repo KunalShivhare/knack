@@ -58,19 +58,21 @@ export function Button({
   style,
   ...rest
 }: ButtonProps) {
+  // Loading blocks presses but keeps the button's colour: it means "working on
+  // it", not "unavailable", and a greyed fill would also swallow the spinner.
   const inactive = disabled || loading;
   // Lazy state, not a ref: the value is read during render to build the
   // interpolations below, which a ref is not allowed to be.
-  const [enabled] = useState(() => new Animated.Value(inactive ? 0 : 1));
+  const [enabled] = useState(() => new Animated.Value(disabled ? 0 : 1));
 
   useEffect(() => {
     Animated.timing(enabled, {
-      toValue: inactive ? 0 : 1,
+      toValue: disabled ? 0 : 1,
       duration: ENABLE_MS,
       // Colour cannot be driven on the native thread.
       useNativeDriver: false,
     }).start();
-  }, [enabled, inactive]);
+  }, [enabled, disabled]);
 
   const fill = fills[variant];
 
@@ -106,7 +108,7 @@ export function Button({
         style={[styles.base, styles[size], { backgroundColor, borderColor }]}
       >
         {loading ? (
-          <ActivityIndicator color={colors.text.onAction} size="small" />
+          <ActivityIndicator color={fill.label} size="small" />
         ) : (
           <Animated.Text numberOfLines={1} style={[styles.label, { color }]}>
             {label}

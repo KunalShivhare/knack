@@ -1,6 +1,10 @@
-/** Stable ids. Persisted, so they must not change when the copy does. */
-export type LevelId = 'new' | 'dabbled' | 'comfortable' | 'sharp';
-export type TimeBudgetId = 'light' | 'steady' | 'serious' | 'deep';
+import type { LearnerProfile, LevelId, TimeBudgetId } from '@/shared/contracts';
+
+/**
+ * Stable ids, persisted, so they must not change when the copy does. Owned by the
+ * plan contract because the server validates them too.
+ */
+export type { LevelId, TimeBudgetId };
 
 /**
  * Everything onboarding collects. Each field exists because the plan prompt
@@ -47,4 +51,24 @@ export const stepIsComplete: Record<OnboardingStep, (a: OnboardingAnswers) => bo
 /** The step to resume on: the first unanswered one, or `null` when all are done. */
 export function firstIncompleteStep(answers: OnboardingAnswers): OnboardingStep | null {
   return ONBOARDING_STEPS.find((step) => !stepIsComplete[step](answers)) ?? null;
+}
+
+/**
+ * The answers as the plan request needs them, or `null` while any required one
+ * is missing. The name is left behind on the device: the plan has no use for
+ * it, and free-tier prompts may be read to train models.
+ */
+export function toLearnerProfile(answers: OnboardingAnswers): LearnerProfile | null {
+  const hobby = answers.hobby.trim();
+  const target = answers.target.trim();
+
+  if (!hobby || !target || !answers.level || !answers.weeklyHours) return null;
+
+  return {
+    hobby,
+    level: answers.level,
+    target,
+    motivation: answers.motivation.trim(),
+    weeklyHours: answers.weeklyHours,
+  };
 }

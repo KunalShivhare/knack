@@ -52,6 +52,12 @@ export const HOBBY_SUGGESTIONS: readonly ChipOption[] = [
   { id: 'pottery', label: 'Pottery', emoji: '🏺' },
 ] as const;
 
+/** The suggestion emoji for a hobby typed or picked in onboarding, if it is one of the suggestions. */
+export function hobbyEmoji(hobby: string): string | undefined {
+  const key = hobby.trim().toLowerCase();
+  return HOBBY_SUGGESTIONS.find((option) => option.label.toLowerCase() === key)?.emoji;
+}
+
 export type LevelOption = { id: LevelId; label: string; description: string };
 
 export const LEVELS: readonly LevelOption[] = [
