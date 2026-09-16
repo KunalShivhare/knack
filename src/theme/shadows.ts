@@ -1,7 +1,8 @@
 import { Platform, type ViewStyle } from 'react-native';
 
-/** Warm-tinted shadows. A neutral black shadow reads grey against the canvas. */
-const shadowColor = '#261412';
+/** Near-black, matching the ramp. Shadows stay faint — on a monochrome canvas a
+ * heavy shadow competes with the near-black accent for attention. */
+const shadowColor = '#0A0A0A';
 
 const build = (
   offsetY: number,

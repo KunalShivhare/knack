@@ -19,5 +19,5 @@ export { radius } from './radius';
 export { shadows } from './shadows';
 export { spacing } from './spacing';
 export { textVariants, typography } from './typography';
-export type { Colors, MediaKind } from './colors';
+export type { Colors } from './colors';
 export type { TextVariant } from './typography';

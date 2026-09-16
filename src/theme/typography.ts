@@ -29,6 +29,7 @@ export const fontSize = {
   lg: 17,
   xl: 20,
   xxl: 24,
+  xxxl: 28,
   display: 32,
   hero: 40,
 } as const;
@@ -64,22 +65,31 @@ export const textVariants = {
     fontWeight: fontWeight.regular,
     lineHeight: Math.round(fontSize.display * lineHeight.tight),
   },
+  /** The question at the top of a screen. Bold and large — it is the one thing
+   * on the screen the eye should land on first. */
   title: {
     fontFamily: fontFamily.body,
-    fontSize: fontSize.xxl,
-    fontWeight: fontWeight.semibold,
-    lineHeight: Math.round(fontSize.xxl * lineHeight.snug),
+    fontSize: fontSize.xxxl,
+    fontWeight: fontWeight.bold,
+    lineHeight: Math.round(fontSize.xxxl * lineHeight.snug),
   },
   heading: {
     fontFamily: fontFamily.body,
     fontSize: fontSize.xl,
-    fontWeight: fontWeight.semibold,
+    fontWeight: fontWeight.bold,
     lineHeight: Math.round(fontSize.xl * lineHeight.snug),
   },
   subheading: {
     fontFamily: fontFamily.body,
     fontSize: fontSize.lg,
-    fontWeight: fontWeight.medium,
+    fontWeight: fontWeight.regular,
+    lineHeight: Math.round(fontSize.lg * lineHeight.normal),
+  },
+  /** Button labels and anything else that has to carry weight at 17pt. */
+  subheadingStrong: {
+    fontFamily: fontFamily.body,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.semibold,
     lineHeight: Math.round(fontSize.lg * lineHeight.normal),
   },
   body: {
