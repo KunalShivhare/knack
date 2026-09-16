@@ -20,12 +20,12 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(function FormFiel
   return (
     <View style={fieldStyle}>
       {label ? (
-        <Text variant="label" color="tertiary" align="center" style={styles.label}>
+        <Text variant="subheadingStrong" color="primary" align="center" style={styles.label}>
           {label}
         </Text>
       ) : null}
       {hint ? (
-        <Text variant="caption" color="secondary" align="center" style={styles.hint}>
+        <Text variant="body" color="secondary" align="center" style={styles.hint}>
           {hint}
         </Text>
       ) : null}
@@ -35,6 +35,6 @@ export const FormField = forwardRef<TextInput, FormFieldProps>(function FormFiel
 });
 
 const styles = StyleSheet.create({
-  label: { marginBottom: spacing.xs },
-  hint: { marginBottom: spacing.sm },
+  label: { marginBottom: spacing.xxs },
+  hint: { marginBottom: spacing.md },
 });

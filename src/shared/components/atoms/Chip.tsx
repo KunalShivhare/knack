@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, type ViewStyle } from 'react-native';
 
 import { colors, radius, spacing } from '@/theme';
 
@@ -46,17 +46,11 @@ export function Chip({
           {emoji}
         </Text>
       ) : null}
-      <Text variant={selected ? 'bodyStrong' : 'body'} color={selected ? 'inverse' : 'primary'}>
+      {/* One weight in both states: a label that turns bold on selection grows,
+          and in a wrapped group that reflows every row after it. */}
+      <Text variant="bodyStrong" color={selected ? 'inverse' : 'primary'}>
         {label}
       </Text>
-      {/* Reserves the tick's width at all times so selecting never reflows the row. */}
-      <View style={styles.tick}>
-        {selected ? (
-          <Text variant="bodyStrong" color="inverse">
-            ✓
-          </Text>
-        ) : null}
-      </View>
     </Pressable>
   );
 }
@@ -84,5 +78,4 @@ const styles = StyleSheet.create({
   pressed: { transform: [{ scale: 0.97 }] },
   disabled: { opacity: 0.45 },
   emoji: { fontSize: 18, lineHeight: 22 },
-  tick: { width: 14, alignItems: 'flex-end' },
 });
