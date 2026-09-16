@@ -23,6 +23,16 @@ describe('parseTechnique', () => {
     expect(parseTechnique({ ...valid, id: '' })?.id).toBe('clean-chord-changes');
   });
 
+  it('repairs the image search phrase instead of dropping the technique', () => {
+    expect(parseTechnique(valid)?.imageQuery).toBeNull();
+    expect(parseTechnique({ ...valid, imageQuery: '  ' })?.imageQuery).toBeNull();
+    expect(parseTechnique({ ...valid, imageQuery: ' guitar posture ' })?.imageQuery).toBe('guitar posture');
+
+    const long = parseTechnique({ ...valid, imageQuery: `guitar ${'posture '.repeat(15)}` })?.imageQuery;
+    expect(long?.length).toBeLessThanOrEqual(80);
+    expect(long?.endsWith('posture')).toBe(true);
+  });
+
   it('brings a drill length back inside five to sixty minutes', () => {
     expect(parseTechnique({ ...valid, drill: { ...valid.drill, minutes: 75 } })?.drill.minutes).toBe(60);
     expect(parseTechnique({ ...valid, drill: { ...valid.drill, minutes: 2.4 } })?.drill.minutes).toBe(5);

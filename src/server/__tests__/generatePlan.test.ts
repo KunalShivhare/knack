@@ -30,6 +30,7 @@ function technique(id: string, overrides: Partial<Technique> = {}): Technique {
     mediumReason: 'It is built by repetition.',
     explainer: 'Do the thing.',
     visual: null,
+    imageQuery: null,
     drill: { task: 'Repeat it ten times.', minutes: 10 },
     masteryCheck: "You've got it when it is clean.",
     ...overrides,

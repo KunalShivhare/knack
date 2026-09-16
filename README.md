@@ -136,6 +136,21 @@ model picks the shape; the app owns how it looks, so a visual written on the fly
 for any hobby still looks designed, renders on every platform, and is validated
 like the rest of the plan.
 
+**Pictures.** A posture or a chord shape needs a real picture, and the free
+tier cannot generate images, so pictures are found rather than made. Each
+technique carries a short Wikimedia Commons search phrase, or `null` when no
+picture could help. Opening a technique calls `GET /api/image`, which searches
+Commons with the phrase and with each word left out in turn (Commons requires
+every word to match, so "guitar sitting posture" finds concert photos where
+"guitar posture" finds the instructional ones), downloads up to six thumbnails,
+and shows them to Gemini to pick the one that shows the technique — or none,
+because a wrong picture teaches the wrong thing. The answer is saved on the
+technique, so it is looked up once per device, and the route is a GET the CDN
+caches for a week. The sheet shows the picture with its author, licence and a
+link to its Commons page, as the licences require. Pictures load through
+`/api/image-file`, which fetches only Commons file URLs: Wikimedia refuses
+Android's image loader, whose user agent cannot be overridden.
+
 **Model output is repaired before it is rejected.** Gemini turns the JSON schema
 into a decoding grammar and refuses schemas whose nested array bounds make that
 grammar too large, so bounds are stated in the prompt and enforced on the way
@@ -160,7 +175,7 @@ practice days.
 
 ## Platform notes
 
-Four things differ from the Expo template, each for a reason worth stating:
+Five things differ from the Expo template, each for a reason worth stating:
 
 - **React Compiler is off** (`expo.experiments.reactCompiler`). With it enabled,
   the Android build dies during React Native's own environment setup with
@@ -183,6 +198,10 @@ Four things differ from the Expo template, each for a reason worth stating:
   modal on a desktop — the pattern the brief asks for — instead of a full-page
   push. The flag is read when the bundle is built, so every script that builds
   web sets it.
+- **The technique sheet's scroll view opts into nested scrolling.** Android's
+  bottom sheet only hands a downward drag to content that declares it can
+  scroll; without `nestedScrollEnabled`, dragging the lesson back up closes the
+  sheet instead.
 
 ## Configuration
 

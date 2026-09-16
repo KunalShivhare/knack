@@ -43,6 +43,7 @@ export function writingRules(budget: TimeBudgetId): string {
   - compare: two columns of 2 to 4 short points each, for do versus avoid, or one option versus another.
   - numbers: 2 to 4 key figures, each a short value and what it means, for ratios, tempos, counts or thresholds.
   Required when the medium is visual. For other media, include one only when it genuinely clarifies the idea; otherwise null. Keep every label short enough to read at a glance, and leave the full explanation to the explainer.
+- imageQuery: a search phrase of 2 to 4 plain English words for a real photo or diagram on Wikimedia Commons that would show a beginner this technique, such as "guitar sitting posture" or "chess knight fork". The search matches every word, so name only what the picture shows, not the lesson, and leave out qualifiers. Use null only when no picture could show anything useful, such as a purely mental habit.
 - Never write a URL anywhere.
 - drill: one concrete, measurable exercise that fits a ${BUDGET[budget].session} practice session, with its length in minutes.
 - masteryCheck: an observable test starting "You've got it when", such as "You've got it when you can switch from G to C four times in a row at 60 bpm without stopping." Not a feeling like "you feel confident".`;

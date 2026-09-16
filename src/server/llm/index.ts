@@ -3,10 +3,12 @@ import * as groq from './groq';
 import { LlmError, type JsonPrompt } from './types';
 
 export { streamJson } from './gemini';
+/** For prompts with images. Groq's models cannot see them, so there is no fallback. */
+export { generateJson as generateJsonFromImages } from './gemini';
 export { toModelSchema } from './schema';
 export { LlmError } from './types';
 
-export type { JsonPrompt, LlmErrorKind } from './types';
+export type { InlineImage, JsonPrompt, LlmErrorKind } from './types';
 
 /** A single JSON response, from Gemini or, failing that, Groq. */
 export async function generateJson(prompt: JsonPrompt, signal: AbortSignal): Promise<string> {

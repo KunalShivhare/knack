@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import type { LearnerProfile, PlanMeta, StrikeReason, Technique } from '@/shared/contracts';
+import type { LearnerProfile, PlanMeta, StrikeReason, Technique, TechniqueImage } from '@/shared/contracts';
 import { storage, storageKeys } from '@/shared/lib/storage';
 
 import type { Journey, TechniqueStatus } from '../types';
@@ -27,6 +27,7 @@ type JourneyContextValue = {
   setStatus: (techniqueId: string, status: TechniqueStatus, reason?: StrikeReason) => void;
   swap: (techniqueId: string, replacement: Technique) => void;
   logPractice: (techniqueId: string, minutes: number) => void;
+  setImage: (techniqueId: string, image: TechniqueImage | null) => void;
   /** Steps away from the active journey so a new plan can be made. The old one stays stored. */
   leave: () => void;
 };
@@ -81,6 +82,10 @@ export function JourneyProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'practiceLogged', techniqueId, minutes, at: now() });
   }, []);
 
+  const setImage = useCallback<JourneyContextValue['setImage']>((techniqueId, image) => {
+    dispatch({ type: 'imageFound', techniqueId, image });
+  }, []);
+
   const leave = useCallback(() => dispatch({ type: 'left' }), []);
 
   const journey = useMemo(
@@ -96,9 +101,10 @@ export function JourneyProvider({ children }: { children: ReactNode }) {
       setStatus,
       swap,
       logPractice,
+      setImage,
       leave,
     }),
-    [state.hydrated, journey, create, setStatus, swap, logPractice, leave],
+    [state.hydrated, journey, create, setStatus, swap, logPractice, setImage, leave],
   );
 
   return <JourneyContext.Provider value={value}>{children}</JourneyContext.Provider>;

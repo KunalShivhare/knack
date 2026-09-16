@@ -18,6 +18,7 @@ function entry(id: string, status: TechniqueStatus): JourneyTechnique {
     mediumReason: '',
     explainer: '',
     visual: null,
+    imageQuery: null,
     drill: { task: '', minutes: 10 },
     masteryCheck: '',
     status,

@@ -57,7 +57,15 @@ async function post(method: string, prompt: JsonPrompt, signal: AbortSignal): Pr
 
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: prompt.system }] },
-    contents: [{ role: 'user', parts: [{ text: prompt.user }] }],
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: prompt.user },
+          ...(prompt.images ?? []).map((image) => ({ inlineData: image })),
+        ],
+      },
+    ],
     generationConfig: {
       responseMimeType: 'application/json',
       responseJsonSchema: prompt.schema,

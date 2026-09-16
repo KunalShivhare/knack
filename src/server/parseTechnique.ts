@@ -38,6 +38,7 @@ function repair(value: unknown): unknown {
   }
 
   technique.visual = trimVisual(technique.visual);
+  technique.imageQuery = imageQueryOf(technique.imageQuery);
 
   // An optional infographic that is malformed is left out. A visual technique
   // needs one, so for those the schema still rejects it.
@@ -47,6 +48,18 @@ function repair(value: unknown): unknown {
   }
 
   return technique;
+}
+
+/**
+ * The search phrase only decides which pictures are looked at, so a missing or
+ * overlong one is repaired rather than costing the technique: missing means no
+ * picture, overlong is cut back to whole words.
+ */
+function imageQueryOf(query: unknown): string | null {
+  if (typeof query !== 'string' || !query.trim()) return null;
+
+  const trimmed = query.trim();
+  return trimmed.length <= 80 ? trimmed : trimmed.slice(0, 80).replace(/\s+\S*$/, '');
 }
 
 /** A visual with more entries than its layout holds keeps the first ones. */

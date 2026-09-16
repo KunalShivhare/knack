@@ -104,6 +104,14 @@ export const TechniqueSchema = z
     visual: VisualSchema.nullable().describe(
       'An infographic for the technique. Required when the medium is visual; otherwise include one only if it genuinely clarifies the idea, else null.',
     ),
+    imageQuery: z
+      .string()
+      .min(1)
+      .max(80)
+      .nullable()
+      .describe(
+        'A short Wikimedia Commons search phrase for a photo or diagram that shows this technique, or null when no picture could show it.',
+      ),
     drill: z.object({
       task: z.string().min(1).max(400).describe('One concrete, measurable exercise.'),
       minutes: z.number().int().min(5).max(60).describe('Length of one drill session.'),
@@ -155,3 +163,30 @@ export const SwapRequestSchema = z.object({
 });
 
 export type SwapRequest = z.infer<typeof SwapRequestSchema>;
+
+/**
+ * What the image route needs to find a picture for a technique. Sent as query
+ * parameters, because the route is a GET whose answers the CDN caches.
+ */
+export const ImageRequestSchema = z.object({
+  hobby: z.string().trim().min(1).max(60),
+  title: z.string().trim().min(1).max(60),
+  summary: z.string().trim().min(1).max(200),
+  /** The model's search phrase; plans saved before there was one search by title. */
+  query: z.string().trim().min(1).max(80).optional(),
+});
+
+export type ImageRequest = z.infer<typeof ImageRequestSchema>;
+
+/** A picture for a technique, with what its licence requires be shown alongside it. */
+export type TechniqueImage = {
+  url: string;
+  width: number;
+  height: number;
+  /** One line telling the learner what to look at. */
+  caption: string;
+  credit: string;
+  license: string;
+  /** The file's page on Wikimedia Commons, where its full licence lives. */
+  sourceUrl: string;
+};

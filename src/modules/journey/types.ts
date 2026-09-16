@@ -1,4 +1,4 @@
-import type { LearnerProfile, PlanMeta, StrikeReason, Technique } from '@/shared/contracts';
+import type { LearnerProfile, PlanMeta, StrikeReason, Technique, TechniqueImage } from '@/shared/contracts';
 
 /** `struck` covers both brief cases — disliked and too hard — with the reason kept alongside. */
 export type TechniqueStatus = 'todo' | 'mastered' | 'struck';
@@ -11,6 +11,11 @@ export type JourneyTechnique = Technique & {
   struckReason: StrikeReason | null;
   /** Set when this technique was swapped out; the replacement sits right after it. */
   replacedById: string | null;
+  /**
+   * Its picture, looked up the first time the technique is opened: absent until
+   * then, `null` once the lookup found none. Saved, so it is looked up once.
+   */
+  image?: TechniqueImage | null;
 };
 
 export type PracticeEntry = {

@@ -11,6 +11,7 @@ function technique(id: string): Technique {
     mediumReason: 'Reps.',
     explainer: 'Explained.',
     visual: null,
+    imageQuery: null,
     drill: { task: 'Drill it.', minutes: 10 },
     masteryCheck: "You've got it when it works.",
   };
@@ -103,5 +104,21 @@ describe('journeyReducer', () => {
 
     expect(state.activeId).toBeNull();
     expect(state.journeys).toHaveLength(1);
+  });
+  it('saves a looked-up picture, or the absence of one, on its technique', () => {
+    const image = {
+      url: 'https://upload.wikimedia.org/a.jpg',
+      width: 480,
+      height: 360,
+      caption: 'Look at the wrist.',
+      credit: 'Jane Doe',
+      license: 'CC BY 4.0',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:a.jpg',
+    };
+
+    const found = journeyReducer(withJourney(), { type: 'imageFound', techniqueId: 'a', image });
+    const none = journeyReducer(found, { type: 'imageFound', techniqueId: 'b', image: null });
+
+    expect(techniquesOf(none).map((technique) => technique.image)).toEqual([image, null, undefined]);
   });
 });

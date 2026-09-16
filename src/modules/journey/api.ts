@@ -1,6 +1,13 @@
 import { fetch } from 'expo/fetch';
 
-import type { LearnerProfile, PlanStreamEvent, SwapRequest, Technique } from '@/shared/contracts';
+import type {
+  ImageRequest,
+  LearnerProfile,
+  PlanStreamEvent,
+  SwapRequest,
+  Technique,
+  TechniqueImage,
+} from '@/shared/contracts';
 import { api, apiUrl, type ApiError } from '@/shared/lib/http';
 import { readLines } from '@/shared/lib/stream/readLines';
 
@@ -71,4 +78,16 @@ export function requestSwap(request: SwapRequest): Promise<Technique> {
   return api
     .post<{ technique: Technique }, { technique: Technique }>('/api/swap', request)
     .then((response) => response.technique);
+}
+
+/** Longer than the client default: the lookup searches, downloads and asks the model. */
+const IMAGE_TIMEOUT_MS = 40_000;
+
+export function requestImage(request: ImageRequest): Promise<TechniqueImage | null> {
+  return api
+    .get<{ image: TechniqueImage | null }, { image: TechniqueImage | null }>('/api/image', {
+      params: request,
+      timeout: IMAGE_TIMEOUT_MS,
+    })
+    .then((response) => response.image);
 }

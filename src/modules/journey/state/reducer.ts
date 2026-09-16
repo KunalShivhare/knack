@@ -1,4 +1,4 @@
-import type { LearnerProfile, PlanMeta, StrikeReason, Technique } from '@/shared/contracts';
+import type { LearnerProfile, PlanMeta, StrikeReason, Technique, TechniqueImage } from '@/shared/contracts';
 
 import type { Journey, JourneyTechnique, TechniqueStatus } from '../types';
 
@@ -27,6 +27,7 @@ export type JourneyAction =
     }
   | { type: 'swapped'; techniqueId: string; replacement: Technique; at: string }
   | { type: 'practiceLogged'; techniqueId: string; minutes: number; at: string }
+  | { type: 'imageFound'; techniqueId: string; image: TechniqueImage | null }
   | { type: 'left' };
 
 export const initialState: JourneyState = { hydrated: false, journeys: [], activeId: null };
@@ -110,6 +111,9 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
           { techniqueId: action.techniqueId, minutes: action.minutes, loggedAt: action.at },
         ],
       }));
+
+    case 'imageFound':
+      return updateTechnique(state, action.techniqueId, (technique) => ({ ...technique, image: action.image }));
 
     case 'left':
       return { ...state, activeId: null };

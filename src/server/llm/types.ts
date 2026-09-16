@@ -6,7 +6,12 @@ export type JsonPrompt = {
   user: string;
   /** JSON Schema, already reduced to the keywords the providers accept. */
   schema: Record<string, unknown>;
+  /** Pictures sent after `user`, in order. Only Gemini can see them. */
+  images?: InlineImage[];
 };
+
+/** Image bytes as the model API takes them. */
+export type InlineImage = { mimeType: string; data: string };
 
 /**
  * `busy` is worth retrying shortly (rate limit, overload); `invalid` means the

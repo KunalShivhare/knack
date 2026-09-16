@@ -6,9 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   MediumTag,
   PRACTICE_MINUTES,
+  TechniquePicture,
   VisualBlock,
   requestSwap,
   useJourney,
+  useTechniqueImage,
   type Journey,
   type JourneyTechnique,
 } from '@/modules/journey';
@@ -77,6 +79,8 @@ export default function TechniqueSheet() {
         </Text>
       </View>
 
+      <Picture hobby={journey.meta.hobby} technique={technique} />
+
       {/* A visual technique leads with its infographic; for the others it
           follows the explanation it illustrates. */}
       {technique.medium === 'visual' && technique.visual ? <VisualBlock visual={technique.visual} /> : null}
@@ -139,6 +143,11 @@ export default function TechniqueSheet() {
       <Actions key={technique.status} journey={journey} technique={technique} />
     </ScrollView>
   );
+}
+
+/** Its own component so the lookup runs only once there is a technique to look up. */
+function Picture({ hobby, technique }: { hobby: string; technique: JourneyTechnique }) {
+  return <TechniquePicture state={useTechniqueImage(hobby, technique)} />;
 }
 
 type SwapState = { status: 'idle' } | { status: 'loading' } | { status: 'failed'; message: string };
