@@ -1,9 +1,9 @@
 import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { Image, Text } from '@/shared/components/atoms';
-import { apiUrl } from '@/shared/lib/http';
 import { colors, radius, spacing } from '@/theme';
 
+import { pictureUrl } from '../../api';
 import type { TechniqueImageState } from '../../hooks/useTechniqueImage';
 
 /** Tall photos would push the lesson off a phone screen, so past this height they scale down. */
@@ -35,9 +35,7 @@ export function TechniquePicture({ state }: { state: TechniqueImageState }) {
   return (
     <View style={styles.figure}>
       <Image
-        // Through the app's own route: Wikimedia refuses Android's image loader,
-        // which ignores a custom user agent.
-        source={{ uri: apiUrl(`/api/image-file?src=${encodeURIComponent(image.url)}`) }}
+        source={{ uri: pictureUrl(image) }}
         aspectRatio={image.width / image.height}
         radius="xl"
         resizeMode="contain"

@@ -13,6 +13,23 @@ const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const DEFAULT_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
 
 /**
+ * Picking a picture needs a model that can tell a tutorial image from a generic
+ * or unsuitable one, which the lite models get wrong (in testing, a group class
+ * for a single pose and a lingerie shot for a lighting lesson). Free-tier quotas
+ * are counted per model per day, so these are also models the plan does not
+ * use: finding pictures never costs the learner their next plan.
+ * Overridable with GEMINI_IMAGE_MODELS.
+ */
+const DEFAULT_IMAGE_MODELS = ['gemini-3.6-flash', 'gemini-3-flash-preview', 'gemini-3.7-flash', 'gemini-3.8-flash'];
+
+/**
+ * Judging six pictures is one non-streamed answer, so the whole answer has to
+ * arrive inside the wait, and under load it takes longer than a plan takes to
+ * start streaming.
+ */
+const IMAGE_TIMEOUT_MS = 30_000;
+
+/**
  * How long a model gets to start answering. Only the wait for response headers
  * is timed: a streamed plan that is already arriving is never cut off.
  */
@@ -43,15 +60,31 @@ export async function* streamJson(prompt: JsonPrompt, signal: AbortSignal): Asyn
   }
 }
 
-export async function generateJson(prompt: JsonPrompt, signal: AbortSignal): Promise<string> {
-  const response = await post('generateContent', prompt, signal);
+export async function generateJson(
+  prompt: JsonPrompt,
+  signal: AbortSignal,
+  candidates = modelsFrom('GEMINI_MODELS', DEFAULT_MODELS),
+  timeoutMs = CONNECT_TIMEOUT_MS,
+): Promise<string> {
+  const response = await post('generateContent', prompt, signal, candidates, timeoutMs);
   const text = textOf((await response.json()) as GeminiPayload);
 
   if (!text) throw new LlmError('failed', 'Gemini returned no text.');
   return text;
 }
 
-async function post(method: string, prompt: JsonPrompt, signal: AbortSignal): Promise<Response> {
+/** A JSON answer about the images in `prompt`, from the models chosen for judging pictures. */
+export function generateJsonFromImages(prompt: JsonPrompt, signal: AbortSignal): Promise<string> {
+  return generateJson(prompt, signal, modelsFrom('GEMINI_IMAGE_MODELS', DEFAULT_IMAGE_MODELS), IMAGE_TIMEOUT_MS);
+}
+
+async function post(
+  method: string,
+  prompt: JsonPrompt,
+  signal: AbortSignal,
+  candidates = modelsFrom('GEMINI_MODELS', DEFAULT_MODELS),
+  timeoutMs = CONNECT_TIMEOUT_MS,
+): Promise<Response> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new LlmError('unconfigured', 'GEMINI_API_KEY is not set.');
 
@@ -75,9 +108,9 @@ async function post(method: string, prompt: JsonPrompt, signal: AbortSignal): Pr
 
   let lastError = new LlmError('unconfigured', 'No Gemini models are configured.');
 
-  for (const model of models()) {
+  for (const model of candidates) {
     const attempt = linkedController(signal);
-    const timer = setTimeout(() => attempt.abort(), CONNECT_TIMEOUT_MS);
+    const timer = setTimeout(() => attempt.abort(), timeoutMs);
 
     try {
       const response = await fetch(`${BASE_URL}/${model}:${method}`, {
@@ -107,13 +140,13 @@ async function post(method: string, prompt: JsonPrompt, signal: AbortSignal): Pr
   throw lastError;
 }
 
-function models(): string[] {
-  const configured = (process.env.GEMINI_MODELS ?? '')
+function modelsFrom(variable: string, defaults: string[]): string[] {
+  const configured = (process.env[variable] ?? '')
     .split(',')
     .map((model) => model.trim())
     .filter(Boolean);
 
-  return configured.length > 0 ? configured : DEFAULT_MODELS;
+  return configured.length > 0 ? configured : defaults;
 }
 
 /** An abort controller that also aborts when `parent` does, so the caller can still cancel. */

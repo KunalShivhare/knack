@@ -136,20 +136,35 @@ model picks the shape; the app owns how it looks, so a visual written on the fly
 for any hobby still looks designed, renders on every platform, and is validated
 like the rest of the plan.
 
-**Pictures.** A posture or a chord shape needs a real picture, and the free
-tier cannot generate images, so pictures are found rather than made. Each
-technique carries a short Wikimedia Commons search phrase, or `null` when no
-picture could help. Opening a technique calls `GET /api/image`, which searches
-Commons with the phrase and with each word left out in turn (Commons requires
-every word to match, so "guitar sitting posture" finds concert photos where
-"guitar posture" finds the instructional ones), downloads up to six thumbnails,
-and shows them to Gemini to pick the one that shows the technique — or none,
-because a wrong picture teaches the wrong thing. The answer is saved on the
-technique, so it is looked up once per device, and the route is a GET the CDN
-caches for a week. The sheet shows the picture with its author, licence and a
-link to its Commons page, as the licences require. Pictures load through
-`/api/image-file`, which fetches only Commons file URLs: Wikimedia refuses
-Android's image loader, whose user agent cannot be overridden.
+**Pictures.** A posture, a grip or a chord shape needs a picture a learner can
+copy, and the free tier cannot generate images, so pictures are found on
+Wikimedia Commons — and only where they are needed. The plan gives a technique
+a Commons search phrase only when the learner has to copy a physical position,
+grip, shape, pose or movement; concepts, strategy and habits get none, and never
+load one.
+
+`GET /api/image` searches with the phrase, with the phrase as a diagram, and with
+each word left out (Commons requires every word to match, so "guitar sitting
+posture" finds concert photos where "guitar posture" finds the instructional
+ones). Up to six thumbnails are shown to Gemini, which judges each one — safe for
+all ages, demonstrates this exact step clearly enough to copy, or just generic
+(a class, an event, a portrait, equipment) — and picks one or none. The server
+refuses any pick the model's own verdict disqualifies, so a generic or
+unsuitable picture cannot slip through on a careless pick. Judging pictures
+runs on its own models (`GEMINI_IMAGE_MODELS`): the lite models misjudged them in
+testing, and free-tier quotas are per model per day, so finding pictures never
+spends the quota the next plan needs.
+
+Loading is kept out of the learner's way. As soon as a plan is on screen its
+pictures are looked up in the background, one at a time in path order, and each
+one found is downloaded, so a lesson usually opens with its picture already
+there; opening a lesson mid-lookup shares the request rather than starting
+another. The answer is saved on the technique and the route is cached at the
+CDN for a week. Browsers load pictures straight from Wikimedia; native apps load
+them through `/api/image-file`, which fetches only Commons file URLs, because
+Wikimedia refuses Android's image loader and its user agent cannot be
+overridden. The sheet shows each picture with its author, licence and a link to
+its Commons page, as the licences require.
 
 **Model output is repaired before it is rejected.** Gemini turns the JSON schema
 into a decoding grammar and refuses schemas whose nested array bounds make that
@@ -211,6 +226,7 @@ Server-side only — none of these reach the app bundle.
 | --- | --- |
 | `GEMINI_API_KEY` | Primary model. Free key from Google AI Studio. |
 | `GEMINI_MODELS` | Optional, comma-separated, tried in order when one is overloaded. Defaults to `gemini-2.5-flash,gemini-3.5-flash,gemini-3.5-flash-lite`. |
+| `GEMINI_IMAGE_MODELS` | Optional, comma-separated models for judging pictures. Defaults to `gemini-3.6-flash,gemini-3-flash-preview,gemini-3.7-flash,gemini-3.8-flash`. |
 | `GROQ_API_KEY` | Optional fallback model. |
 | `GROQ_MODEL` | Optional. Defaults to `openai/gpt-oss-120b`. |
 

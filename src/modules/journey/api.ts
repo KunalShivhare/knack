@@ -1,4 +1,5 @@
 import { fetch } from 'expo/fetch';
+import { Platform } from 'react-native';
 
 import type {
   ImageRequest,
@@ -80,14 +81,34 @@ export function requestSwap(request: SwapRequest): Promise<Technique> {
     .then((response) => response.technique);
 }
 
-/** Longer than the client default: the lookup searches, downloads and asks the model. */
-const IMAGE_TIMEOUT_MS = 40_000;
+/** Longer than the route's own limit, so the route's answer arrives rather than a client timeout. */
+const IMAGE_TIMEOUT_MS = 80_000;
+
+/** Lookups in flight, so the background lookup and an opened lesson share one request. */
+const pendingImages = new Map<string, Promise<TechniqueImage | null>>();
 
 export function requestImage(request: ImageRequest): Promise<TechniqueImage | null> {
-  return api
+  const key = JSON.stringify(request);
+  const pending = pendingImages.get(key);
+  if (pending) return pending;
+
+  const lookup = api
     .get<{ image: TechniqueImage | null }, { image: TechniqueImage | null }>('/api/image', {
       params: request,
       timeout: IMAGE_TIMEOUT_MS,
     })
-    .then((response) => response.image);
+    .then((response) => response.image)
+    .finally(() => pendingImages.delete(key));
+
+  pendingImages.set(key, lookup);
+  return lookup;
+}
+
+/**
+ * Where the app loads a picture from. Browsers fetch it straight from Wikimedia;
+ * native apps go through the app's own route, because Wikimedia refuses
+ * Android's image loader and its user agent cannot be overridden.
+ */
+export function pictureUrl(image: TechniqueImage): string {
+  return Platform.OS === 'web' ? image.url : apiUrl(`/api/image-file?src=${encodeURIComponent(image.url)}`);
 }

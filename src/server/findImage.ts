@@ -5,17 +5,16 @@ import { LlmError, generateJsonFromImages } from './llm';
 import { ImageChoiceSchema, imagePrompt } from './prompts/image';
 
 /**
- * A real picture for a technique, or `null` when none fits.
+ * A tutorial picture for a technique, or `null` when none is good enough.
  *
  * Search alone cannot be trusted with this: "chess fork" also finds lemon chess
- * pie. So the candidates are downloaded and shown to Gemini, which picks the one
- * that shows the technique or rejects them all. No picture is a normal answer;
- * a wrong one teaches the wrong thing.
+ * pie, and "window light portrait" finds fashion shoots. So the candidates are
+ * downloaded and shown to Gemini, which judges each one and picks one a learner
+ * could copy the technique from, or none. No picture is a normal answer; a
+ * generic or unsuitable one is not.
  */
 export async function findImage(request: ImageRequest, signal: AbortSignal): Promise<TechniqueImage | null> {
-  // Plans saved before techniques carried a phrase are searched by title, minus its punctuation.
-  const query = request.query ?? `${request.hobby} ${request.title}`.replace(/[^\p{L}\p{N}\s]/gu, ' ');
-  const queries = searchQueries(query);
+  const queries = searchQueries(request.query);
   const results = await Promise.all(queries.map((query) => searchCommons(query, signal)));
   const candidates = interleave(results);
 
@@ -46,19 +45,30 @@ export async function findImage(request: ImageRequest, signal: AbortSignal): Pro
   };
 }
 
+/** Most searches one lookup may cost. */
+const MAX_SEARCHES = 5;
+
 /**
  * Commons search requires every word to match, and ranks by text rather than by
  * what a picture shows. "guitar sitting posture" finds concert photos of seated
  * guitarists; "guitar posture" finds the instructional ones. So the phrase is
- * searched as written and with each word left out in turn, all at once.
+ * searched as written, as a diagram (the shape tutorials usually take), and
+ * with each word left out in turn, all at once.
  */
 export function searchQueries(query: string): string[] {
   const words = query.trim().split(/\s+/);
-  if (words.length < 3) return [words.join(' ')];
+  const phrase = words.join(' ');
+  const queries = [phrase];
 
-  const shorter = words.map((_, skip) => words.filter((__, index) => index !== skip).join(' '));
-  // Four searches at most: the phrase and its first three shortenings.
-  return [words.join(' '), ...shorter].slice(0, 4);
+  if (!/\b(diagram|illustration|drawing)\b/i.test(phrase)) queries.push(`${phrase} diagram`);
+
+  if (words.length >= 3) {
+    for (let skip = 0; skip < words.length; skip += 1) {
+      queries.push(words.filter((_, index) => index !== skip).join(' '));
+    }
+  }
+
+  return queries.slice(0, MAX_SEARCHES);
 }
 
 /**
@@ -86,6 +96,8 @@ export function interleave(results: Candidate[][]): Candidate[] {
 /**
  * The model's choice as an index into what it was shown, or `null` for none.
  *
+ * The pick has to agree with the model's own verdict on that image: one it
+ * marked unsafe, generic or not a demonstration is refused, whatever it picked.
  * An answer that does not parse, or names an image it was not shown, is an
  * error rather than "no picture": "no picture" is saved on the learner's device,
  * and a garbled answer deserves another try next time.
@@ -101,9 +113,12 @@ export function parseChoice(text: string, count: number): { index: number; capti
   const parsed = ImageChoiceSchema.safeParse(json);
   if (!parsed.success) throw new LlmError('invalid', 'The image choice did not match the schema.');
 
-  const { pick, caption } = parsed.data;
+  const { images, pick, caption } = parsed.data;
   if (pick === null) return null;
   if (pick < 1 || pick > count) throw new LlmError('invalid', `The image choice named image ${pick} of ${count}.`);
+
+  const verdict = images.find((image) => image.number === pick);
+  if (!verdict?.safe || !verdict.demonstrates || verdict.generic) return null;
 
   return { index: pick - 1, caption: caption.trim() };
 }

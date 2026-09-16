@@ -1,7 +1,7 @@
 import { Redirect, Tabs } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 
-import { useJourney } from '@/modules/journey';
+import { useImagePrefetch, useJourney } from '@/modules/journey';
 import { Text } from '@/shared/components/atoms';
 import { colors, textVariants } from '@/theme';
 
@@ -13,6 +13,8 @@ import { colors, textVariants } from '@/theme';
  */
 export default function TabsLayout() {
   const { hydrated, journey } = useJourney();
+  // Here, because the tabs are where a plan is being worked through.
+  useImagePrefetch();
 
   // Reached without a plan (a stale link, or the plan was left): back to the gate.
   if (hydrated && !journey) return <Redirect href="/" />;

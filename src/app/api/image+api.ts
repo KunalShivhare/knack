@@ -3,8 +3,8 @@ import { ImageRequestSchema } from '@/shared/contracts/schemas';
 import { toPlanError } from '@/server/errors';
 import { findImage } from '@/server/findImage';
 
-/** Search, six downloads and one model call; a slow Commons day still fits. */
-const TIMEOUT_MS = 30_000;
+/** Searches, downloads, and room for a second picture model if the first is overloaded. */
+const TIMEOUT_MS = 75_000;
 
 /**
  * GET /api/image — a picture for one technique, or `{ image: null }`.

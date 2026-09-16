@@ -12,21 +12,26 @@ const candidate = (name: string): Candidate => ({
 });
 
 describe('searchQueries', () => {
-  it('searches a long phrase as written and with each word left out', () => {
+  it('searches the phrase, the phrase as a diagram, and the phrase with each word left out', () => {
     expect(searchQueries('guitar sitting posture')).toEqual([
       'guitar sitting posture',
+      'guitar sitting posture diagram',
       'sitting posture',
       'guitar posture',
       'guitar sitting',
     ]);
   });
 
-  it('stops at four searches', () => {
-    expect(searchQueries('classical guitar sitting posture diagram')).toHaveLength(4);
+  it('stops at five searches', () => {
+    expect(searchQueries('classical guitar sitting posture close up')).toHaveLength(5);
+  });
+
+  it('does not ask for a diagram of what is already one', () => {
+    expect(searchQueries('E minor chord diagram')).not.toContain('E minor chord diagram diagram');
   });
 
   it('does not shorten a phrase of two words, which would lose what it is about', () => {
-    expect(searchQueries(' chess  fork ')).toEqual(['chess fork']);
+    expect(searchQueries(' chess  fork ')).toEqual(['chess fork', 'chess fork diagram']);
   });
 });
 
@@ -50,17 +55,31 @@ describe('interleave', () => {
 });
 
 describe('parseChoice', () => {
+  const verdicts = (...flags: [boolean, boolean, boolean][]) =>
+    flags.map(([safe, demonstrates, generic], index) => ({ number: index + 1, safe, demonstrates, generic }));
+  const answer = (pick: number | null, images = verdicts([true, true, false], [true, true, false], [true, true, false])) =>
+    JSON.stringify({ images, pick, caption: ' Copy the wrist angle. ' });
+
   it('turns the numbered pick into an index', () => {
-    expect(parseChoice('{"pick":2,"caption":" Look at the wrist. "}', 3)).toEqual({ index: 1, caption: 'Look at the wrist.' });
+    expect(parseChoice(answer(2), 3)).toEqual({ index: 1, caption: 'Copy the wrist angle.' });
   });
 
   it('reads a null pick as no fitting picture', () => {
-    expect(parseChoice('{"pick":null,"caption":""}', 3)).toBeNull();
+    expect(parseChoice(answer(null), 3)).toBeNull();
+  });
+
+  it('refuses a pick the model itself judged unsafe, generic or not a demonstration', () => {
+    const images = verdicts([false, true, false], [true, false, false], [true, true, true]);
+
+    expect(parseChoice(answer(1, images), 3)).toBeNull();
+    expect(parseChoice(answer(2, images), 3)).toBeNull();
+    expect(parseChoice(answer(3, images), 3)).toBeNull();
+    expect(parseChoice(answer(1, []), 3)).toBeNull();
   });
 
   it('treats a pick outside what was shown as a failure to retry, not as "no picture"', () => {
-    expect(() => parseChoice('{"pick":4,"caption":"x"}', 3)).toThrow('image 4 of 3');
-    expect(() => parseChoice('{"pick":0,"caption":"x"}', 3)).toThrow();
+    expect(() => parseChoice(answer(4), 3)).toThrow('image 4 of 3');
+    expect(() => parseChoice(answer(0), 3)).toThrow();
     expect(() => parseChoice('not json', 3)).toThrow('not valid JSON');
   });
 });

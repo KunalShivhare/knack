@@ -12,29 +12,29 @@ export type TechniqueImageState =
   | { status: 'none' };
 
 /**
- * The picture for a technique, looked up the first time it is needed.
+ * The picture for a technique, if it has one worth showing.
  *
- * A found picture, or a definite "none", is saved on the technique, so it is
- * never looked up twice. A failed lookup is not saved: it shows nothing now and
- * tries again the next time the technique is opened.
+ * Usually already found by the background lookup; if the lesson is opened first,
+ * it is looked up here (sharing the request if one is already in flight). A found
+ * picture, or a definite "none", is saved on the technique, so it is never looked
+ * up twice. A failed lookup is not saved: it shows nothing now and tries again
+ * the next time the technique is opened.
  */
 export function useTechniqueImage(hobby: string, technique: JourneyTechnique): TechniqueImageState {
   const { setImage } = useJourney();
   const [failedId, setFailedId] = useState<string | null>(null);
 
-  // Techniques from plans made before pictures existed have no phrase at all
-  // (undefined) and are looked up by title; `null` is the model saying no
-  // picture could help.
-  const skip = technique.imageQuery === null;
-  const needed = !skip && technique.image === undefined && failedId !== technique.id;
   const { id, title, summary, imageQuery } = technique;
+  // No phrase means no picture: the plan asks for one only where copying a
+  // physical action needs it. Plans saved before pictures existed have none.
+  const needed = typeof imageQuery === 'string' && technique.image === undefined && failedId !== id;
 
   useEffect(() => {
-    if (!needed) return;
+    if (!needed || typeof imageQuery !== 'string') return;
 
     let mounted = true;
 
-    requestImage({ hobby, title, summary, query: imageQuery ?? undefined })
+    requestImage({ hobby, title, summary, query: imageQuery })
       // Saved even if the sheet has closed, so the wait is not wasted.
       .then((image) => setImage(id, image))
       .catch(() => {

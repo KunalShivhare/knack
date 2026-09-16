@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { generateJson } from '../gemini';
+import { generateJson, generateJsonFromImages } from '../gemini';
 import type { JsonPrompt } from '../types';
 
 const prompt: JsonPrompt = { name: 'plan', system: 'system', user: 'user', schema: { type: 'object' } };
@@ -16,6 +16,7 @@ beforeEach(() => {
 
 afterAll(() => {
   delete process.env.GEMINI_MODELS;
+  delete process.env.GEMINI_IMAGE_MODELS;
 });
 
 const modelsCalled = () =>
@@ -57,5 +58,17 @@ describe('gemini', () => {
     );
 
     await expect(generateJson(prompt, new AbortController().signal)).resolves.toBe('{}');
+  });
+
+  it('judges images with their own models, sending the pictures after the text', async () => {
+    process.env.GEMINI_IMAGE_MODELS = 'vision';
+    fetchMock.mockResolvedValue(answer('{"pick":null}'));
+
+    const images = [{ mimeType: 'image/png', data: 'AAAA' }];
+    await generateJsonFromImages({ ...prompt, images }, new AbortController().signal);
+
+    expect(modelsCalled()).toEqual(['vision']);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.contents[0].parts).toEqual([{ text: 'user' }, { inlineData: images[0] }]);
   });
 });

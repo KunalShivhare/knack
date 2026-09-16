@@ -4,7 +4,7 @@ import { LlmError, type JsonPrompt } from './types';
 
 export { streamJson } from './gemini';
 /** For prompts with images. Groq's models cannot see them, so there is no fallback. */
-export { generateJson as generateJsonFromImages } from './gemini';
+export { generateJsonFromImages } from './gemini';
 export { toModelSchema } from './schema';
 export { LlmError } from './types';
 

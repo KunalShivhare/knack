@@ -110,7 +110,7 @@ export const TechniqueSchema = z
       .max(80)
       .nullable()
       .describe(
-        'A short Wikimedia Commons search phrase for a photo or diagram that shows this technique, or null when no picture could show it.',
+        'A short Wikimedia Commons search phrase for a tutorial picture of the exact physical action, or null when words and the infographic are enough.',
       ),
     drill: z.object({
       task: z.string().min(1).max(400).describe('One concrete, measurable exercise.'),
@@ -172,8 +172,8 @@ export const ImageRequestSchema = z.object({
   hobby: z.string().trim().min(1).max(60),
   title: z.string().trim().min(1).max(60),
   summary: z.string().trim().min(1).max(200),
-  /** The model's search phrase; plans saved before there was one search by title. */
-  query: z.string().trim().min(1).max(80).optional(),
+  /** The technique's search phrase. Techniques without one never ask for a picture. */
+  query: z.string().trim().min(1).max(80),
 });
 
 export type ImageRequest = z.infer<typeof ImageRequestSchema>;

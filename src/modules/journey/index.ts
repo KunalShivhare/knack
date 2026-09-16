@@ -13,6 +13,7 @@ export {
 } from './components/molecules';
 export { MEDIUM_DISPLAY, PRACTICE_MINUTES } from './constants';
 export { usePlanStream } from './hooks/usePlanStream';
+export { useImagePrefetch } from './hooks/useImagePrefetch';
 export { useRevealCount } from './hooks/useRevealCount';
 export { useTechniqueImage } from './hooks/useTechniqueImage';
 export {
