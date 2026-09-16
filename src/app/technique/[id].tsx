@@ -46,6 +46,9 @@ export default function TechniqueSheet() {
     <ScrollView
       // Remounted per technique, so opening a replacement starts at its top, not mid-page.
       key={technique.id}
+      // Android's sheet only hands a downward drag to content that opts into
+      // nested scrolling; without it, scrolling back up dismisses the sheet.
+      nestedScrollEnabled
       showsVerticalScrollIndicator={false}
       style={styles.root}
       contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
