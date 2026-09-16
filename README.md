@@ -84,7 +84,7 @@ the first unanswered step, so closing the app mid-flow costs nothing.
 
 ## Platform notes
 
-Two settings differ from the Expo template, both for reasons worth stating:
+Three things differ from the Expo template, each for a reason worth stating:
 
 - **React Compiler is off** (`expo.experiments.reactCompiler`). With it enabled,
   the Android build dies during React Native's own environment setup with
@@ -96,6 +96,11 @@ Two settings differ from the Expo template, both for reasons worth stating:
   `adjustResize`, but the app is edge-to-edge, which stops Android from
   resizing — so without this the CTA sits behind the keyboard. `OnboardingShell`
   owns the fix, which is why all four question screens get it at once.
+- **Text fields are native multiline on Android.** A single-line `EditText`
+  scrolls sideways, and while it is empty React Native scrolls just far enough
+  to reveal the caret — so a centred field's caret sits against the right edge.
+  A multiline one does not scroll and centres correctly; `submitBehavior` keeps
+  Enter submitting rather than breaking the line. Contained in the `Input` atom.
 
 ## Configuration
 

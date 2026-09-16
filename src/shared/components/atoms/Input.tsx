@@ -1,5 +1,6 @@
 import { forwardRef, useState } from 'react';
 import {
+  Platform,
   StyleSheet,
   TextInput,
   View,
@@ -20,21 +21,23 @@ export type InputProps = Omit<TextInputProps, 'style'> & {
 };
 
 /**
- * Single-line fields centre their text: the screens around them are centred
- * compositions, and a lone left-aligned value pulls the whole layout off axis.
- * Multiline answers stay left — centred prose is unreadable past one line.
- */
-
-/**
  * Owns focus and error styling so no screen has to reimplement a focus ring. The
  * border is the only thing that moves — the field itself never resizes, which
  * would otherwise shift the layout every time the keyboard opens.
+ *
+ * Every field centres its text and caret: the screens around them are centred
+ * compositions, and a lone left-aligned value pulls the layout off axis. The one
+ * multiline answer is a sentence or two, short enough to stay readable centred.
  */
 export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { error, style, containerStyle, multiline, onBlur, onFocus, ...rest },
+  { error, style, containerStyle, multiline, placeholder, value, onBlur, onFocus, ...rest },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+
+  // A centred caret laid over a centred placeholder cuts through the middle of
+  // it. Once focused, the caret alone says "type here".
+  const showPlaceholder = !(focused && !value);
 
   const borderColor = error
     ? colors.status.error
@@ -46,8 +49,17 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     <View style={containerStyle}>
       <TextInput
         ref={ref}
-        multiline={multiline}
+        // Android only: a single-line EditText scrolls sideways, and when it is
+        // empty React Native scrolls just far enough to reveal the caret, which
+        // parks a centred field's caret against the right edge. A multiline one
+        // does not scroll, so it centres; Enter still submits instead of
+        // breaking the line.
+        multiline={multiline || Platform.OS === 'android'}
+        submitBehavior={multiline ? undefined : 'blurAndSubmit'}
+        value={value}
+        placeholder={showPlaceholder ? placeholder : undefined}
         placeholderTextColor={colors.text.tertiary}
+        cursorColor={colors.text.primary}
         onFocus={(e) => {
           setFocused(true);
           onFocus?.(e);
@@ -58,7 +70,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         }}
         style={[
           styles.field,
-          multiline ? styles.multiline : styles.centred,
+          multiline ? styles.multiline : styles.singleLine,
           { borderColor },
           focused ? styles.focused : null,
           style,
@@ -84,8 +96,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     minHeight: 62,
+    textAlign: 'center',
   },
-  centred: { textAlign: 'center' },
+  singleLine: { textAlignVertical: 'center' },
   multiline: {
     minHeight: 120,
     paddingTop: spacing.md,
