@@ -17,6 +17,12 @@ import { Button, Reveal, Text } from '@/shared/components/atoms';
 import { colors, spacing } from '@/theme';
 
 const MAX_WIDTH = 520;
+/**
+ * The rows are left-aligned text on a rail, so at the hero's width they sit
+ * visibly left of the centred title above them. A narrower centred column keeps
+ * them under it; a phone is narrower than this anyway.
+ */
+const LIST_WIDTH = 360;
 
 /**
  * The plan being written, technique by technique.
@@ -78,24 +84,26 @@ function Generation({ profile, stream, onRetry }: GenerationProps) {
             </Text>
           </View>
 
-          {Array.from({ length: slots }, (_, index) => {
-            const technique = index < shown ? stream.techniques[index] : null;
-            const last = index === slots - 1;
+          <View style={styles.list}>
+            {Array.from({ length: slots }, (_, index) => {
+              const technique = index < shown ? stream.techniques[index] : null;
+              const last = index === slots - 1;
 
-            return technique ? (
-              <Reveal key={technique.id}>
-                <PathNode
-                  state="todo"
-                  title={technique.title}
-                  medium={technique.medium}
-                  minutes={technique.drill.minutes}
-                  last={last}
-                />
-              </Reveal>
-            ) : (
-              <PathNode key={`slot-${index}`} state="pending" last={last} />
-            );
-          })}
+              return technique ? (
+                <Reveal key={technique.id}>
+                  <PathNode
+                    state="todo"
+                    title={technique.title}
+                    medium={technique.medium}
+                    minutes={technique.drill.minutes}
+                    last={last}
+                  />
+                </Reveal>
+              ) : (
+                <PathNode key={`slot-${index}`} state="pending" last={last} />
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
 
@@ -129,6 +137,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
   inner: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center' },
   hero: { alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xxl },
+  list: { width: '100%', maxWidth: LIST_WIDTH, alignSelf: 'center' },
   footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   failed: { gap: spacing.md },
   // Same height as the button that replaces it, so the footer does not jump.
