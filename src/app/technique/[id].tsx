@@ -45,16 +45,8 @@ export default function TechniqueSheet() {
   }
 
   return (
-    <ScrollView
-      // Remounted per technique, so opening a replacement starts at its top, not mid-page.
-      key={technique.id}
-      // Android's sheet only hands a downward drag to content that opts into
-      // nested scrolling; without it, scrolling back up dismisses the sheet.
-      nestedScrollEnabled
-      showsVerticalScrollIndicator={false}
-      style={styles.root}
-      contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
-    >
+    <View style={styles.root}>
+      {/* Outside the scroll view, so the way out stays in reach however far down the lesson is. */}
       <View style={styles.top}>
         <MediumTag medium={technique.medium} />
         <Pressable
@@ -70,78 +62,90 @@ export default function TechniqueSheet() {
         </Pressable>
       </View>
 
-      <View style={styles.heading}>
-        <Text variant="title" color="primary">
-          {technique.title}
-        </Text>
-        <Text variant="subheading" color="secondary">
-          {technique.summary}
-        </Text>
-      </View>
+      <ScrollView
+        // Remounted per technique, so opening a replacement starts at its top, not mid-page.
+        key={technique.id}
+        // Android's sheet only hands a downward drag to content that opts into
+        // nested scrolling; without it, scrolling back up dismisses the sheet.
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
+      >
 
-      <Picture hobby={journey.meta.hobby} technique={technique} />
+        <View style={styles.heading}>
+          <Text variant="title" color="primary">
+            {technique.title}
+          </Text>
+          <Text variant="subheading" color="secondary">
+            {technique.summary}
+          </Text>
+        </View>
 
-      {/* A visual technique leads with its infographic; for the others it
-          follows the explanation it illustrates. */}
-      {technique.medium === 'visual' && technique.visual ? <VisualBlock visual={technique.visual} /> : null}
+        <Picture hobby={journey.meta.hobby} technique={technique} />
 
-      <Section title="The idea">
-        <Text variant="subheading" color="primary">
-          {technique.explainer}
-        </Text>
-      </Section>
+        {/* A visual technique leads with its infographic; for the others it
+            follows the explanation it illustrates. */}
+        {technique.medium === 'visual' && technique.visual ? <VisualBlock visual={technique.visual} /> : null}
 
-      {technique.medium !== 'visual' && technique.visual ? <VisualBlock visual={technique.visual} /> : null}
+        <Section title="The idea">
+          <Text variant="subheading" color="primary">
+            {technique.explainer}
+          </Text>
+        </Section>
 
-      <Section title="Why this way">
-        <Text variant="body" color="secondary">
-          {technique.mediumReason}
-        </Text>
-      </Section>
+        {technique.medium !== 'visual' && technique.visual ? <VisualBlock visual={technique.visual} /> : null}
 
-      <View style={styles.card}>
-        <Text variant="label" color="secondary">
-          Practice · {technique.drill.minutes} min
-        </Text>
-        <Text variant="subheading" color="primary">
-          {technique.drill.task}
-        </Text>
+        <Section title="Why this way">
+          <Text variant="body" color="secondary">
+            {technique.mediumReason}
+          </Text>
+        </Section>
 
-        {technique.status === 'struck' ? null : (
-          <View style={styles.log}>
-            <Text variant="bodyStrong" color="primary">
-              {logged?.techniqueId === technique.id
-                ? `Logged ${logged.minutes} min. It's on your Progress tab.`
-                : 'Did a session? Log it'}
-            </Text>
-            <View style={styles.chips}>
-              {PRACTICE_MINUTES.map((minutes) => (
-                <Chip
-                  key={minutes}
-                  label={`${minutes} min`}
-                  onPress={() => {
-                    logPractice(technique.id, minutes);
-                    setLogged({ techniqueId: technique.id, minutes });
-                  }}
-                />
-              ))}
+        <View style={styles.card}>
+          <Text variant="label" color="secondary">
+            Practice · {technique.drill.minutes} min
+          </Text>
+          <Text variant="subheading" color="primary">
+            {technique.drill.task}
+          </Text>
+
+          {technique.status === 'struck' ? null : (
+            <View style={styles.log}>
+              <Text variant="bodyStrong" color="primary">
+                {logged?.techniqueId === technique.id
+                  ? `Logged ${logged.minutes} min. It's on your Progress tab.`
+                  : 'Did a session? Log it'}
+              </Text>
+              <View style={styles.chips}>
+                {PRACTICE_MINUTES.map((minutes) => (
+                  <Chip
+                    key={minutes}
+                    label={`${minutes} min`}
+                    onPress={() => {
+                      logPractice(technique.id, minutes);
+                      setLogged({ techniqueId: technique.id, minutes });
+                    }}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-        )}
-      </View>
+          )}
+        </View>
 
-      <View style={styles.card}>
-        <Text variant="label" color="secondary">
-          Mastery check
-        </Text>
-        <Text variant="subheading" color="primary">
-          {technique.masteryCheck}
-        </Text>
-      </View>
+        <View style={styles.card}>
+          <Text variant="label" color="secondary">
+            Mastery check
+          </Text>
+          <Text variant="subheading" color="primary">
+            {technique.masteryCheck}
+          </Text>
+        </View>
 
-      {/* Keyed by status so a change of status resets whatever step of the flow was open. */}
-      <Actions key={technique.status} journey={journey} technique={technique} />
-    </ScrollView>
+        {/* Keyed by status so a change of status resets whatever step of the flow was open. */}
+        <Actions key={technique.status} journey={journey} technique={technique} />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -286,7 +290,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface.canvas },
-  content: { padding: spacing.xl, gap: spacing.xl },
+  scroll: { flex: 1 },
+  // The pinned bar keeps the top padding, so the title starts where it did.
+  content: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, gap: spacing.xl },
   missing: {
     flex: 1,
     alignItems: 'center',
@@ -295,7 +301,14 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     backgroundColor: colors.surface.canvas,
   },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
+  },
   close: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   heading: { gap: spacing.sm },
   section: { gap: spacing.xs },
