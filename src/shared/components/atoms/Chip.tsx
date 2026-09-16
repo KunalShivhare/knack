@@ -1,0 +1,88 @@
+import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+
+import { colors, radius, spacing } from '@/theme';
+
+import { Text } from './Text';
+
+export type ChipProps = {
+  label: string;
+  /** Leading emoji. Emoji rather than an icon font: no dependency, same on web and Android. */
+  emoji?: string;
+  selected?: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
+  /** Fills the width of its parent. Used where chips stack rather than wrap. */
+  block?: boolean;
+  style?: ViewStyle;
+};
+
+/** Selectable pill. The hobby grid, the level list and the time budget all use it. */
+export function Chip({
+  label,
+  emoji,
+  selected = false,
+  disabled = false,
+  onPress,
+  block = false,
+  style,
+}: ChipProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.base,
+        selected ? styles.selected : null,
+        block ? styles.block : null,
+        pressed && !disabled ? styles.pressed : null,
+        disabled ? styles.disabled : null,
+        style,
+      ]}
+    >
+      {emoji ? (
+        <Text variant="body" style={styles.emoji}>
+          {emoji}
+        </Text>
+      ) : null}
+      <Text variant={selected ? 'bodyStrong' : 'body'} color={selected ? 'inverse' : 'primary'}>
+        {label}
+      </Text>
+      {/* Reserves the tick's width at all times so selecting never reflows the row. */}
+      <View style={styles.tick}>
+        {selected ? (
+          <Text variant="bodyStrong" color="inverse">
+            ✓
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface.default,
+    borderWidth: 1.5,
+    borderColor: colors.border.default,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  block: { alignSelf: 'stretch' },
+  // Filled rather than tinted. A grey fill would sit darker than the white
+  // chips but lighter than the canvas, reading as recessed instead of chosen —
+  // and a chip is small enough that solid black stays within the 10%.
+  selected: {
+    backgroundColor: colors.brand.default,
+    borderColor: colors.brand.default,
+  },
+  pressed: { transform: [{ scale: 0.97 }] },
+  disabled: { opacity: 0.45 },
+  emoji: { fontSize: 18, lineHeight: 22 },
+  tick: { width: 14, alignItems: 'flex-end' },
+});
