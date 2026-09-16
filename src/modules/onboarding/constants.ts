@@ -58,7 +58,7 @@ export const LEVELS: readonly LevelOption[] = [
   { id: 'new', label: 'Starting from scratch', description: "Never really tried it" },
   { id: 'dabbled', label: 'Dabbled a bit', description: 'Know a few basics, nothing stuck' },
   { id: 'comfortable', label: 'Comfortable', description: 'Can hold my own, plateaued' },
-  { id: 'sharp', label: 'Pretty solid', description: 'Want to sharpen specific weak spots' },
+  { id: 'sharp', label: 'Pretty solid', description: 'Want to sharpen the weak spots' },
 ] as const;
 
 /**

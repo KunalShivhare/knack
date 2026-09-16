@@ -8,6 +8,7 @@ import {
   stepIsComplete,
   useOnboarding,
 } from '@/modules/onboarding';
+import { LevelMeter } from '@/shared/components/atoms';
 import { FormField } from '@/shared/components/molecules';
 import { spacing } from '@/theme';
 
@@ -19,6 +20,7 @@ export default function GoalScreen() {
   const { answers, answer } = useOnboarding();
 
   const hobby = answers.hobby.trim().toLowerCase();
+  const next = () => router.push('/onboarding/motivation');
 
   return (
     <OnboardingShell
@@ -27,16 +29,17 @@ export default function GoalScreen() {
       title="Where are you now, and where do you want to get?"
       ctaDisabled={!stepIsComplete.goal(answers)}
       onBack={() => router.back()}
-      onNext={() => router.push('/onboarding/motivation')}
+      onNext={next}
     >
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel={`Your current level at ${hobby}`}
         style={styles.levels}
       >
-        {LEVELS.map((level) => (
+        {LEVELS.map((level, index) => (
           <OptionTile
             key={level.id}
+            leading={<LevelMeter level={index + 1} total={LEVELS.length} />}
             label={level.label}
             description={level.description}
             selected={answers.level === level.id}
@@ -53,6 +56,7 @@ export default function GoalScreen() {
         placeholder="Play a full song start to finish"
         autoCapitalize="sentences"
         returnKeyType="done"
+        onSubmitEditing={() => stepIsComplete.goal(answers) && next()}
       />
     </OnboardingShell>
   );

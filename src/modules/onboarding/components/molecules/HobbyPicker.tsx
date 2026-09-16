@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Input, Text } from '@/shared/components/atoms';
@@ -9,6 +10,8 @@ export type HobbyPickerProps = {
   /** The hobby itself, free text. A chip simply writes its label into it. */
   value: string;
   onChange: (hobby: string) => void;
+  /** The keyboard's return key. */
+  onSubmitEditing?: () => void;
 };
 
 /**
@@ -17,10 +20,15 @@ export type HobbyPickerProps = {
  * not listed is a first-class path rather than a fallback — which the brief
  * requires, since the hobby could be anything.
  */
-export function HobbyPicker({ suggestions, value, onChange }: HobbyPickerProps) {
+export function HobbyPicker({ suggestions, value, onChange, onSubmitEditing }: HobbyPickerProps) {
   const matched = suggestions.find(
     (option) => option.label.toLowerCase() === value.trim().toLowerCase(),
   );
+
+  // What the field shows. A picked chip's label is not echoed into it: the chip
+  // already shows the choice, and the same word in two places reads as two
+  // answers. Seeded once, since nothing else edits the hobby while this is up.
+  const [typed, setTyped] = useState(() => (matched ? '' : value));
 
   return (
     <View style={styles.root}>
@@ -29,19 +37,25 @@ export function HobbyPicker({ suggestions, value, onChange }: HobbyPickerProps) 
         value={matched?.id ?? null}
         onChange={(id) => {
           const picked = suggestions.find((option) => option.id === id);
-          if (picked) onChange(picked.label);
+          if (!picked) return;
+          setTyped('');
+          onChange(picked.label);
         }}
       />
 
       <View style={styles.divider}>
-        <Text variant="caption" color="tertiary">
+        <Text variant="body" color="secondary">
           or name your own
         </Text>
       </View>
 
       <Input
-        value={value}
-        onChangeText={onChange}
+        value={typed}
+        onChangeText={(text) => {
+          setTyped(text);
+          onChange(text);
+        }}
+        onSubmitEditing={onSubmitEditing}
         placeholder="Bread baking, bouldering, bass…"
         autoCapitalize="sentences"
         autoCorrect={false}

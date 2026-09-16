@@ -29,12 +29,25 @@ export default function MotivationScreen() {
     <OnboardingShell
       step={4}
       icon="⏳"
-      title="Last one — why this, and how much time?"
+      title="Last one — how much time, and why now?"
       ctaLabel="Build my plan"
       ctaDisabled={!stepIsComplete.motivation(answers)}
       onBack={() => router.back()}
       onNext={finish}
     >
+      {/* Required before optional: the budget gates the CTA, so it goes where the
+          eye lands first, and the free-text field sits nearest the keyboard. */}
+      <View style={styles.budget}>
+        <Text variant="subheadingStrong" color="primary" align="center">
+          Time you can give each week
+        </Text>
+        <ChipGroup
+          options={TIME_BUDGETS}
+          value={answers.weeklyHours}
+          onChange={(id) => answer({ weeklyHours: id as TimeBudgetId })}
+        />
+      </View>
+
       <FormField
         multiline
         label="Why now?"
@@ -44,21 +57,10 @@ export default function MotivationScreen() {
         placeholder="I want to play at my sister's wedding in March."
         autoCapitalize="sentences"
       />
-
-      <View style={styles.budget}>
-        <Text variant="label" color="tertiary" align="center">
-          Time a week
-        </Text>
-        <ChipGroup
-          options={TIME_BUDGETS}
-          value={answers.weeklyHours}
-          onChange={(id) => answer({ weeklyHours: id as TimeBudgetId })}
-        />
-      </View>
     </OnboardingShell>
   );
 }
 
 const styles = StyleSheet.create({
-  budget: { gap: spacing.sm },
+  budget: { gap: spacing.md },
 });

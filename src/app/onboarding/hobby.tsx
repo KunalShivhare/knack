@@ -13,6 +13,7 @@ export default function HobbyScreen() {
   const { answers, answer } = useOnboarding();
 
   const firstName = answers.name.trim().split(' ')[0];
+  const next = () => router.push('/onboarding/goal');
 
   return (
     <OnboardingShell
@@ -22,12 +23,13 @@ export default function HobbyScreen() {
       subtitle="Anything counts. Pick one to start — you can add more later."
       ctaDisabled={!stepIsComplete.hobby(answers)}
       onBack={() => router.back()}
-      onNext={() => router.push('/onboarding/goal')}
+      onNext={next}
     >
       <HobbyPicker
         suggestions={HOBBY_SUGGESTIONS}
         value={answers.hobby}
         onChange={(hobby) => answer({ hobby })}
+        onSubmitEditing={() => stepIsComplete.hobby(answers) && next()}
       />
     </OnboardingShell>
   );

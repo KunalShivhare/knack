@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, ProgressBar, Text } from '@/shared/components/atoms';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 import { ONBOARDING_STEPS } from '../../types';
 
@@ -63,13 +63,9 @@ export function OnboardingShell({
               accessibilityLabel="Go back"
               disabled={!onBack}
               onPress={onBack}
-              style={styles.back}
+              style={({ pressed }) => [styles.back, pressed ? styles.backPressed : null]}
             >
-              {onBack ? (
-                <Text variant="heading" color="secondary">
-                  ←
-                </Text>
-              ) : null}
+              {onBack ? <View style={styles.chevron} /> : null}
             </Pressable>
 
             <ProgressBar
@@ -116,9 +112,32 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface.canvas },
   header: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg },
   headerInner: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  // Fixed width, occupied or not, so the bar sits in the same place on every step.
-  back: { width: 28 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  // 44pt is the minimum comfortable touch target. Fixed, occupied or not, so the
+  // bar sits in the same place on every step.
+  back: {
+    width: 44,
+    height: 44,
+    marginLeft: -spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+  },
+  backPressed: { backgroundColor: colors.surface.pressed },
+  // Two borders of a square, turned 45° into a chevron. Drawn rather than taken
+  // from an icon font: one glyph does not justify a font download, and a view
+  // stays crisp at every density. The nudge right re-centres the visible stroke,
+  // which after rotation sits left of the box's centre.
+  chevron: {
+    width: 13,
+    height: 13,
+    marginLeft: 5,
+    borderLeftWidth: 2.5,
+    borderBottomWidth: 2.5,
+    borderColor: colors.text.primary,
+    borderBottomLeftRadius: 2,
+    transform: [{ rotate: '45deg' }],
+  },
   progress: { flex: 1 },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
   body: {
