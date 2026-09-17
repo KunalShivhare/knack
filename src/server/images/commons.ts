@@ -155,19 +155,31 @@ export function fetchCommonsFile(src: string, signal: AbortSignal): Promise<Resp
   return fetch(src, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual', signal });
 }
 
+/** Longest credit shown under a picture; longer ones are cut at a word. */
+const MAX_CREDIT = 80;
+
 /**
  * The author as a short name. The field is free text: it often carries a wiki
  * user prefix, a licence URL, or the licence name the app already shows.
  */
 export function creditOf(artist: string | undefined, license: string): string {
   const credit = plainText(artist)
+    // Commons' own notice for files whose author field was never filled in: keep the name it assumes.
+    .replace(/^No machine-readable author provided\.\s*(.*?)\s*assumed \(based on copyright claims\)\.?$/i, '$1')
     .replace(/<?\s*https?:\/\/\S+\s*>?/g, '')
     .replace(/^(?:[a-z]{2,3}:)?user:/i, '')
+    // Accounts merged across wikis carry a "~commonswiki" suffix nobody signs with.
+    .replace(/~commonswiki\b/gi, '')
     .replace(new RegExp(`[,;\\s]*${license.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'i'), '')
     .replace(/[,;\s]+$/, '')
     .trim();
 
-  return credit || 'Wikimedia Commons contributor';
+  return shorten(credit, MAX_CREDIT) || 'Wikimedia Commons contributor';
+}
+
+/** Cut after cleaning, not before: cutting first left half a notice behind ("assumed (based on"). */
+function shorten(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max).replace(/\s+\S*$/, '')}…`;
 }
 
 /** Commons metadata is HTML ("<a href=…>user:Name</a>"); the app shows text. */
@@ -183,8 +195,7 @@ export function plainText(html: string | undefined): string {
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 80);
+    .trim();
 }
 
 /** Chunked, because spreading a whole image into `String.fromCharCode` overflows the call stack. */

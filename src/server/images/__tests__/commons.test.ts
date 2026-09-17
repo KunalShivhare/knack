@@ -91,6 +91,22 @@ describe('creditOf', () => {
   it('falls back to a generic credit when no author is given', () => {
     expect(creditOf(undefined, 'CC0')).toBe('Wikimedia Commons contributor');
   });
+
+  it('takes the name out of the "no machine-readable author" notice', () => {
+    // The Artist field of File:Chef's knife grip.jpg, verbatim.
+    const artist =
+      'No machine-readable author provided. <a href="//commons.wikimedia.org/w/index.php?title=User:BenFrantzDale~commonswiki&amp;action=edit&amp;redlink=1" class="new" title="User:BenFrantzDale~commonswiki (page does not exist)">BenFrantzDale~commonswiki</a> assumed (based on copyright claims).';
+    expect(creditOf(artist, 'CC BY-SA 3.0')).toBe('BenFrantzDale');
+  });
+
+  it('shortens a long credit at a word boundary', () => {
+    const artist = 'Photographed by the volunteer members of a regional woodworking guild during their annual open workshop weekend';
+    const credit = creditOf(artist, 'CC BY 4.0');
+    expect(credit.length).toBeLessThanOrEqual(81);
+    expect(credit.endsWith('…')).toBe(true);
+    expect(artist.startsWith(credit.slice(0, -1))).toBe(true);
+    expect(credit.slice(0, -1)).toMatch(/\S$/);
+  });
 });
 
 describe('isCommonsFileUrl', () => {
