@@ -108,6 +108,9 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      // Named explicitly: while loading, the spinner replaces the label, and a
+      // screen reader would otherwise announce only "busy".
+      accessibilityLabel={label}
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
       style={[styles.press, block ? styles.block : null, style]}
