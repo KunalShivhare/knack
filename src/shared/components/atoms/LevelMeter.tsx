@@ -15,7 +15,7 @@ const BAR_STEP = 5;
 /**
  * Rising bars filled up to a level — the signal-strength shape, so "how far
  * along" reads before the label does. Drawn with views rather than a glyph
- * because no emoji comes in ascending steps, and views stay monochrome.
+ * because no icon comes in ascending steps, and views take the theme's colours.
  */
 export function LevelMeter({ level, total, style }: LevelMeterProps) {
   return (
@@ -41,5 +41,6 @@ export function LevelMeter({ level, total, style }: LevelMeterProps) {
 const styles = StyleSheet.create({
   root: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
   bar: { width: BAR_WIDTH, borderRadius: radius.pill, backgroundColor: colors.border.default },
-  filled: { backgroundColor: colors.brand.default },
+  // `brand.strong`, not the marigold fill: the bars sit on the selected tile's tint.
+  filled: { backgroundColor: colors.brand.strong },
 });

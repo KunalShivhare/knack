@@ -23,30 +23,44 @@ export type ButtonProps = Omit<PressableProps, 'style' | 'children'> & {
   style?: ViewStyle;
 };
 
-const fills: Record<ButtonVariant, { bg: string; border: string; label: string }> = {
+const fills: Record<ButtonVariant, { bg: string; border: string; edge: string; label: string }> = {
   primary: {
     bg: colors.action.primary,
     border: colors.action.primaryBorder,
+    edge: colors.action.primaryEdge,
     label: colors.action.primaryLabel,
   },
   secondary: {
     bg: colors.action.secondary,
     border: colors.action.secondaryBorder,
+    edge: colors.action.secondaryEdge,
     label: colors.action.secondaryLabel,
   },
   ghost: {
     bg: colors.common.transparent,
     border: colors.common.transparent,
+    edge: colors.common.transparent,
     label: colors.text.secondary,
   },
 };
 
 const ENABLE_MS = 180;
 
+/** How far the face stands above its edge, and so how far a press sinks it. */
+const EDGE = 4;
+
+/** Outer height, edge included. It never changes, so nothing around a button moves. */
+const HEIGHT: Record<ButtonSize, number> = { md: 48, lg: 56 };
+
 /**
- * The single press-feedback implementation in the app. The enable transition is
- * animated rather than swapped: on a form where the button unlocks as the last
- * field is filled, the fade is the feedback that the answer was accepted.
+ * The single press-feedback implementation in the app. A button stands on a
+ * darker edge and sinks onto it when pressed, the way a physical key does, and a
+ * disabled one sits already sunk and flat, which reads as unavailable without
+ * needing a second cue.
+ *
+ * The enable transition is animated rather than swapped: on a form where the
+ * button unlocks as the last field is filled, the fade is the feedback that the
+ * answer was accepted.
  */
 export function Button({
   label,
@@ -58,8 +72,8 @@ export function Button({
   style,
   ...rest
 }: ButtonProps) {
-  // Loading blocks presses but keeps the button's colour: it means "working on
-  // it", not "unavailable", and a greyed fill would also swallow the spinner.
+  // Loading blocks presses but keeps the button's colour and edge: it means
+  // "working on it", not "unavailable", and a greyed fill would also swallow the spinner.
   const inactive = disabled || loading;
   // Lazy state, not a ref: the value is read during render to build the
   // interpolations below, which a ref is not allowed to be.
@@ -96,25 +110,38 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
-      style={({ pressed }) => [
-        styles.press,
-        block ? styles.block : null,
-        pressed && !inactive ? styles.pressed : null,
-        style,
-      ]}
+      style={[styles.press, block ? styles.block : null, style]}
       {...rest}
     >
-      <Animated.View
-        style={[styles.base, styles[size], { backgroundColor, borderColor }]}
-      >
-        {loading ? (
-          <ActivityIndicator color={fill.label} size="small" />
-        ) : (
-          <Animated.Text numberOfLines={1} style={[styles.label, { color }]}>
-            {label}
-          </Animated.Text>
-        )}
-      </Animated.View>
+      {({ pressed }) => {
+        const sunk = disabled || (pressed && !inactive);
+
+        return (
+          <Animated.View
+            style={[
+              styles.face,
+              {
+                minHeight: HEIGHT[size] - (sunk ? EDGE : 0),
+                marginTop: sunk ? EDGE : 0,
+                backgroundColor,
+                borderColor,
+              },
+              {
+                borderBottomWidth: sunk ? 1 : EDGE + 1,
+                borderBottomColor: disabled ? colors.action.disabled : fill.edge,
+              },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color={fill.label} size="small" />
+            ) : (
+              <Animated.Text numberOfLines={1} style={[styles.label, { color }]}>
+                {label}
+              </Animated.Text>
+            )}
+          </Animated.View>
+        );
+      }}
     </Pressable>
   );
 }
@@ -122,15 +149,12 @@ export function Button({
 const styles = StyleSheet.create({
   press: { alignSelf: 'flex-start' },
   block: { alignSelf: 'stretch' },
-  pressed: { transform: [{ scale: 0.97 }], opacity: 0.9 },
-  base: {
+  face: {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: radius.pill,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing.xxl,
   },
-  md: { minHeight: 48 },
-  lg: { minHeight: 58 },
   label: { ...textVariants.subheadingStrong },
 });

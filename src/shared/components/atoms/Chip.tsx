@@ -6,7 +6,7 @@ import { Text } from './Text';
 
 export type ChipProps = {
   label: string;
-  /** Leading emoji. Emoji rather than an icon font: no dependency, same on web and Android. */
+  /** Leading emoji, for chips that name a hobby: the emoji is the hobby's mark, not an interface icon. */
   emoji?: string;
   selected?: boolean;
   disabled?: boolean;
@@ -68,12 +68,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   block: { alignSelf: 'stretch' },
-  // Filled rather than tinted. A grey fill would sit darker than the white
-  // chips but lighter than the canvas, reading as recessed instead of chosen —
-  // and a chip is small enough that solid black stays within the 10%.
+  // Marigold with an ink label: the brand fill marking a choice, 9:1 for the label.
   selected: {
     backgroundColor: colors.brand.default,
-    borderColor: colors.brand.default,
+    borderColor: colors.brand.edge,
   },
   pressed: { transform: [{ scale: 0.97 }] },
   disabled: { opacity: 0.45 },

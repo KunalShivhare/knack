@@ -2,11 +2,13 @@ import type { Journey, JourneyTechnique, PracticeEntry, TechniqueStatus } from '
 import {
   currentTechnique,
   formatMinutes,
+  generationStatus,
   heatLevel,
   masteryOf,
   minutesSince,
   practiceGrid,
   startOfWeek,
+  weekBar,
 } from '../selectors';
 
 function entry(id: string, status: TechniqueStatus): JourneyTechnique {
@@ -112,5 +114,36 @@ describe('formatting', () => {
 
   it('reads as hours and minutes', () => {
     expect([0, 45, 60, 130].map(formatMinutes)).toEqual(['0m', '45m', '1h', '2h 10m']);
+  });
+});
+
+describe('generationStatus', () => {
+  it('reads the answers before any technique has arrived', () => {
+    expect(generationStatus(0, 6)).toBe('Reading your answers…');
+  });
+
+  it('counts techniques as they land', () => {
+    expect(generationStatus(2, 6)).toBe('Picked 2 of 6…');
+  });
+
+  it('checks the order once the budget is filled', () => {
+    expect(generationStatus(6, 6)).toBe('Checking the order…');
+  });
+});
+
+describe('weekBar', () => {
+  it('scales to the upper bound and has no marker when there is no floor', () => {
+    expect(weekBar(45, { min: 0, max: 120 })).toEqual({ fill: 0.375, marker: null, scale: 120 });
+  });
+
+  it('marks the weekly floor as a fraction of the bar', () => {
+    expect(weekBar(60, { min: 120, max: 300 })).toEqual({ fill: 0.2, marker: 0.4, scale: 300 });
+  });
+
+  it('gives an open-ended budget room past its floor and caps the fill', () => {
+    const bar = weekBar(1200, { min: 600, max: null });
+    expect(bar.scale).toBe(900);
+    expect(bar.fill).toBe(1);
+    expect(bar.marker).toBeCloseTo(2 / 3);
   });
 });

@@ -21,15 +21,17 @@ export {
   JourneyProvider,
   currentTechnique,
   formatMinutes,
+  generationStatus,
   masteryOf,
   minutesSince,
   practiceGrid,
   startOfWeek,
   useJourney,
+  weekBar,
 } from './state';
 
 export type { PlanStream } from './hooks/usePlanStream';
 export type { TechniqueImageState } from './hooks/useTechniqueImage';
 export type { PathNodeState } from './components/molecules';
-export type { Mastery } from './state';
+export type { Mastery, WeekBar } from './state';
 export type { Journey, JourneyTechnique, PracticeEntry, TechniqueStatus } from './types';

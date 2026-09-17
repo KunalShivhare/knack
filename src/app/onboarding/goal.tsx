@@ -26,7 +26,7 @@ export default function GoalScreen() {
   return (
     <OnboardingShell
       step={3}
-      icon="🧭"
+      icon="flag"
       title="Where are you now, and where do you want to get?"
       ctaDisabled={!stepIsComplete.goal(answers)}
       onBack={() => router.back()}

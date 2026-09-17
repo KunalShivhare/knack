@@ -104,3 +104,38 @@ export function formatMinutes(total: number): string {
 function dayKey(date: Date): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
+
+/**
+ * What the generating screen says while a plan streams in. `shown` counts
+ * techniques on screen; once every budgeted slot is filled, the model is only
+ * finishing the plan's name and goal, which is what "checking the order" covers.
+ */
+export function generationStatus(shown: number, budgeted: number): string {
+  if (shown === 0) return 'Reading your answers…';
+  if (shown < budgeted) return `Picked ${shown} of ${budgeted}…`;
+  return 'Checking the order…';
+}
+
+export type WeekBar = {
+  /** This week's minutes as a fraction of `scale`, capped at 1. */
+  fill: number;
+  /** The weekly floor as a fraction of `scale`, or `null` when the budget has none. */
+  marker: number | null;
+  /** Minutes a full bar stands for. */
+  scale: number;
+};
+
+/**
+ * This week's practice against the budget from onboarding. The bar runs to the
+ * budget's upper bound; the top budget has none, so it gets half again past its
+ * floor, which leaves the floor visibly short of full.
+ */
+export function weekBar(minutes: number, budget: { min: number; max: number | null }): WeekBar {
+  const scale = budget.max ?? budget.min * 1.5;
+
+  return {
+    fill: Math.min(minutes / scale, 1),
+    marker: budget.min > 0 ? budget.min / scale : null,
+    scale,
+  };
+}

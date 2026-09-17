@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
+import { colors, shadows } from '@/theme';
+
 export type DriftingHobby = {
   emoji: string;
   /** Position across one run of the field, as a fraction. */
@@ -23,8 +25,11 @@ export type HobbyDriftProps = {
 /** How much wider one run is than the screen. */
 const RUN_RATIO = 1.5;
 
+/** A tile's side as a multiple of the glyph size: room around the emoji without crowding the field. */
+const TILE = 1.15;
+
 /**
- * A scattered field of hobby icons drifting right to left, forever.
+ * A scattered field of hobby icons on paper tiles, drifting right to left, forever.
  *
  * Positions are authored rather than aligned: rows of evenly spaced glyphs read
  * as a grid, and a grid reads as a component. Scattering them at varied sizes
@@ -76,22 +81,23 @@ export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
       >
         {[0, 1].map((copy) =>
           hobbies.map((hobby) => (
-            <Text
+            <View
               key={`${copy}-${hobby.emoji}`}
               style={[
-                styles.glyph,
+                styles.tile,
                 {
                   left: copy * runWidth + hobby.x * runWidth,
                   top: `${hobby.y * 100}%`,
-                  fontSize: hobby.size,
-                  lineHeight: hobby.size * 1.25,
+                  width: hobby.size * TILE,
+                  height: hobby.size * TILE,
+                  borderRadius: hobby.size * 0.36,
                   opacity: hobby.opacity,
                   transform: [{ rotate: `${hobby.rotate}deg` }],
                 },
               ]}
             >
-              {hobby.emoji}
-            </Text>
+              <Text style={{ fontSize: hobby.size * 0.62, lineHeight: hobby.size * 0.8 }}>{hobby.emoji}</Text>
+            </View>
           )),
         )}
       </Animated.View>
@@ -102,5 +108,11 @@ export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
 const styles = StyleSheet.create({
   clip: { flex: 1, overflow: 'hidden' },
   strip: { position: 'absolute', top: 0, bottom: 0, left: 0 },
-  glyph: { position: 'absolute' },
+  tile: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface.default,
+    ...shadows.sm,
+  },
 });

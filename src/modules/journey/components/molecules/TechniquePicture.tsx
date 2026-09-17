@@ -62,12 +62,12 @@ const styles = StyleSheet.create({
   // A tall picture capped by the height narrows; centred, it does not look misplaced.
   picture: { maxHeight: MAX_HEIGHT, alignSelf: 'center' },
   placeholder: {
-    aspectRatio: 4 / 3,
+    aspectRatio: 16 / 9,
     maxHeight: MAX_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     borderRadius: radius.xl,
-    backgroundColor: colors.surface.muted,
+    backgroundColor: colors.surface.panel,
   },
 });

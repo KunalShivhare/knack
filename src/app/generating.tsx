@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   HobbyBadge,
   PathNode,
+  generationStatus,
   useJourney,
   usePlanStream,
   useRevealCount,
@@ -14,6 +15,7 @@ import {
 import { hobbyEmoji, toLearnerProfile, useOnboarding } from '@/modules/onboarding';
 import { TECHNIQUE_COUNT, type LearnerProfile } from '@/shared/contracts';
 import { Button, Reveal, Text } from '@/shared/components/atoms';
+import { haptics } from '@/shared/lib/haptics';
 import { colors, spacing } from '@/theme';
 
 const MAX_WIDTH = 520;
@@ -45,6 +47,7 @@ export default function GeneratingScreen() {
     if (stream.status !== 'done' || !profile || saved.current) return;
 
     saved.current = true;
+    haptics.success();
     create({ profile, meta: stream.meta, techniques: stream.techniques });
   }, [stream, profile, create]);
 
@@ -122,7 +125,7 @@ function Generation({ profile, stream, onRetry }: GenerationProps) {
             <View style={styles.working}>
               <ActivityIndicator color={colors.brand.default} />
               <Text variant="body" color="secondary">
-                {shown === 0 ? 'Thinking about where you are…' : `Picked ${shown} so far…`}
+                {generationStatus(shown, budgeted)}
               </Text>
             </View>
           )}

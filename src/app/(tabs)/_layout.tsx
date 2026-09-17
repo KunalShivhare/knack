@@ -1,9 +1,12 @@
+import { Feather } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import type { ComponentProps } from 'react';
+import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
 
 import { useImagePrefetch, useJourney } from '@/modules/journey';
-import { Text } from '@/shared/components/atoms';
-import { colors, textVariants } from '@/theme';
+import { colors, radius, textVariants } from '@/theme';
+
+type IconName = ComponentProps<typeof Feather>['name'];
 
 /**
  * Two tabs, because there are two questions: what do I do next, and how am I
@@ -24,42 +27,53 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.text.primary,
-        tabBarInactiveTintColor: colors.text.tertiary,
+        tabBarInactiveTintColor: colors.text.secondary,
         tabBarLabelStyle: styles.label,
+        tabBarIconStyle: styles.iconBox,
         tabBarStyle: styles.bar,
         sceneStyle: { backgroundColor: colors.surface.canvas },
       }}
     >
       <Tabs.Screen
         name="path"
-        options={{ title: 'Path', tabBarIcon: ({ focused }) => <Icon glyph="🧭" focused={focused} /> }}
+        options={{
+          title: 'Path',
+          tabBarIcon: ({ focused, color }) => <TabIcon name="map" focused={focused} color={color} />,
+        }}
       />
       <Tabs.Screen
         name="progress"
         options={{
           title: 'Progress',
-          tabBarIcon: ({ focused }) => <Icon glyph="📈" focused={focused} />,
+          tabBarIcon: ({ focused, color }) => <TabIcon name="bar-chart-2" focused={focused} color={color} />,
         }}
       />
     </Tabs>
   );
 }
 
-/** Emoji can't take a tint, so the inactive tab is dimmed instead. */
-function Icon({ glyph, focused }: { glyph: string; focused: boolean }) {
-  return <Text style={[styles.icon, focused ? null : styles.inactive]}>{glyph}</Text>;
+/** The active tab sits on a marigold-tint pill, so the choice shows in shape as well as ink. */
+function TabIcon({ name, focused, color }: { name: IconName; focused: boolean; color: ColorValue }) {
+  return (
+    <View style={[styles.pill, focused ? styles.pillOn : null]}>
+      <Feather aria-hidden name={name} size={20} color={color} />
+    </View>
+  );
 }
+
+const PILL = { width: 52, height: 28 };
 
 const styles = StyleSheet.create({
   bar: {
-    backgroundColor: colors.surface.canvas,
+    backgroundColor: colors.surface.default,
     borderTopColor: colors.border.default,
-    // The navigator boxes each icon in 28pt, and its default web bar is 49pt,
-    // which leaves the label 10pt and cuts it in half. Native bars size
-    // themselves around the safe-area inset, so only web gets a fixed height.
-    ...Platform.select({ web: { height: 58 } }),
+    // The navigator's default web bar is 49pt, which cuts the label under the
+    // pill. Native bars size themselves around the safe-area inset, so only web
+    // gets a fixed height.
+    ...Platform.select({ web: { height: 64 } }),
   },
-  label: { ...textVariants.caption, lineHeight: 14, fontWeight: '600' },
-  icon: { fontSize: 20, lineHeight: 22 },
-  inactive: { opacity: 0.4 },
+  label: { ...textVariants.caption, lineHeight: 14 },
+  iconBox: PILL,
+  pill: { ...PILL, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  pillOn: { backgroundColor: colors.brand.tint },
 });

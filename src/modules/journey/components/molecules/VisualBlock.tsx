@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { Visual } from '@/shared/contracts';
 import { Text } from '@/shared/components/atoms';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, shadows, spacing } from '@/theme';
 
 /**
  * Draws a technique's infographic from the data the model wrote.
@@ -60,9 +60,10 @@ function Steps({ steps }: { steps: StepsVisual['steps'] }) {
 type CompareVisual = Extract<Visual, { kind: 'compare' }>;
 
 /**
- * Two columns, told apart by weight rather than colour: the left one is outlined
- * in black, the right one sits on grey. In a monochrome palette there is no
- * green-versus-red to lean on, and it would not survive colour blindness anyway.
+ * Two columns, told apart by ground: the left on the marigold tint, the right on
+ * the panel. Not green against red — a compare is as often "this option versus
+ * that one" as "do versus avoid", and colour-coding it as right and wrong would
+ * mislabel half of them.
  */
 function Compare({ left, right }: Pick<CompareVisual, 'left' | 'right'>) {
   return (
@@ -93,7 +94,7 @@ function Numbers({ items }: { items: NumbersVisual['items'] }) {
     <View style={styles.numbers}>
       {items.map((item, index) => (
         <View key={index} style={styles.number}>
-          <Text variant="title" color="primary">
+          <Text variant="stat" color="primary" style={styles.value}>
             {item.value}
           </Text>
           <Text variant="body" color="secondary">
@@ -111,10 +112,9 @@ const styles = StyleSheet.create({
   card: {
     gap: spacing.lg,
     padding: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: colors.border.default,
     borderRadius: radius.xl,
     backgroundColor: colors.surface.default,
+    ...shadows.sm,
   },
   step: { flexDirection: 'row', gap: spacing.md },
   stepRail: { width: NUMBER, alignItems: 'center' },
@@ -137,8 +137,8 @@ const styles = StyleSheet.create({
   stepGap: { paddingBottom: spacing.lg },
   compare: { flexDirection: 'row', gap: spacing.sm },
   side: { flex: 1, gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg },
-  sideLeft: { borderWidth: 1.5, borderColor: colors.brand.default },
-  sideRight: { backgroundColor: colors.surface.muted },
+  sideLeft: { backgroundColor: colors.brand.tint },
+  sideRight: { backgroundColor: colors.surface.panel },
   point: { flexDirection: 'row', gap: spacing.sm },
   bullet: {
     width: 5,
@@ -155,6 +155,8 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
     padding: spacing.md,
     borderRadius: radius.lg,
-    backgroundColor: colors.surface.muted,
+    backgroundColor: colors.surface.panel,
   },
+  /** `stat` at a size that fits two tiles across a phone. */
+  value: { fontSize: 28, lineHeight: 32 },
 });

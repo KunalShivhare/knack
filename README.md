@@ -48,7 +48,7 @@ src/
   shared/         # reusable across modules
     components/   # atoms and molecules
     contracts/    # the plan contract: zod schemas, ids, types
-    lib/          # http (axios), storage, stream reading
+    lib/          # http (axios), storage, stream reading, haptics
   theme/          # design tokens — the single source of design truth
 ```
 
@@ -79,14 +79,13 @@ launch feels unstable and makes screenshot diffs worthless. The strip holds two
 copies of the field and travels exactly one copy's width before restarting, so
 the loop closes with no visible seam.
 
-Nothing on the screen is boxed. The field dissolves into the background through
-a gradient rather than stopping at the edge of a panel, because a panel with a
-border draws a line across the design and turns a splash into a form. The
-background is a tonal wash — white held behind the wordmark so the type stays
-crisp, then ramped into grey so the lower half carries real tone.
-
-The hobby icons are emoji, so they are the one place colour enters the app. That
-is deliberate: imagery carries the colour, the interface does not.
+Each hobby sits on its own small paper tile, so the field reads as a scatter of
+things rather than loose glyphs. The screen itself is not boxed: the field
+dissolves into the background through a gradient rather than stopping at the
+edge of a panel, because a panel with a border draws a line across the design
+and turns a splash into a form. The background is a wash from paper into the
+warmer panel tone, and under the button three short facts say what starting
+gets you: 5–8 techniques, built for your goal, no account.
 
 Then four screens collect what a plan is generated from —
 name, hobby, current level and target outcome, and motivation with a weekly time
@@ -234,28 +233,39 @@ The app has no API URL setting. Web calls its own origin; native builds use the
 `origin` set on the `expo-router` plugin in `app.json`, which is what a release
 build must point at the deployed API.
 
-## Colour
+## Look and feel
 
-Monochrome: one neutral ramp from white to near-black, and nothing else. It is
-split 60 / 30 / 10 —
+"Sketchbook": warm paper, brown-black ink, and one brand colour, marigold.
 
-- **60%** the white ground almost every pixel sits on. White rather than an
-  off-white: on a palette with no hue, a grey ground drains the contrast out of
-  everything standing on it and the screen reads as switched off
-- **30%** the content layer: white cards, hairline borders, and the grey text
-  ramp that carries the reading hierarchy
-- **10%** near-black, reserved for the primary button, the selected state and
-  the filled part of a progress bar
+- **Paper and ink.** The ground is a warm off-white (`#FFFAF0`) and text is
+  brown-black rather than pure black, so the app reads like a notebook rather
+  than a settings screen. Cards separate from the ground by a white fill and a
+  soft warm shadow, not by grey outlines.
+- **Marigold marks the next thing to do** — the primary button, the selected
+  chip, the centre of the current step. It is a fill and nothing else: at 1.7:1
+  on paper it cannot carry text or a thin line, so rings use a darker marigold
+  and links a darker one still.
+- **Each medium has its own colour** — sky for See, lilac for Read, mint for
+  Practice — always a light fill with a dark ink of the same hue, so a plan's
+  mix is visible before any title is read. Mastered is green; struck out is
+  rust, not red, because striking a technique is a choice rather than a failure.
 
-The ratio only holds while near-black stays scarce, so a second black button on
-a screen is the signal that something has been promoted that should not be.
-With hue gone, hierarchy comes from contrast and weight instead — including
-status, where an error is the darkest step rather than a red one.
+Every text colour is held to WCAG AA against the ground it sits on, and every
+ring and input border to 3:1; [`src/theme/__tests__/contrast.test.ts`](src/theme/__tests__/contrast.test.ts)
+fails the build if a retuned token breaks that.
 
-Type carries the weight colour cannot: screen questions are bold and large, and
-each step is topped by its own icon so the four questions are distinct at a
-glance. Progress is a single continuous bar rather than segments — segments chop
-the top of every screen into pieces and read as chrome.
+Type is two families. Bricolage Grotesque sets titles and figures; Figtree sets
+everything read at length. Each weight is registered as its own family, because
+Android ignores `fontWeight` on a custom font. Icons are Feather, drawn in the
+current text colour; emoji stay only where they are content, as the mark of a
+hobby.
+
+Primary buttons stand on a darker edge and sink onto it when pressed, and a
+disabled button sits already sunk. Touch feedback goes through three named
+haptics — a selection, a small record such as logged minutes, and success —
+and success is kept for mastering a technique and a plan being ready. Mastering
+springs a tick in place on the lesson sheet rather than taking over the screen,
+and the spring is skipped when the system asks for reduced motion.
 
 Tokens live in [`src/theme`](src/theme). Nothing outside that folder imports raw
 values; components read semantic names like `colors.text.secondary`.

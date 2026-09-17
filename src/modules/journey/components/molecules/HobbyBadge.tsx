@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/shared/components/atoms';
-import { colors, radius, shadows } from '@/theme';
+import { colors, radius } from '@/theme';
 
 export type HobbyBadgeProps = {
   hobby: string;
@@ -30,13 +30,12 @@ export function HobbyBadge({ hobby, emoji, size = 72 }: HobbyBadgeProps) {
 }
 
 const styles = StyleSheet.create({
+  // A soft square on the panel tone rather than a bordered, shadowed circle: it is
+  // a mark, not a control, so it should not look pressable.
   badge: {
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-    borderColor: colors.border.default,
-    backgroundColor: colors.surface.default,
+    borderRadius: radius.xl,
+    backgroundColor: colors.surface.panel,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.md,
   },
 });

@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { Feather } from '@expo/vector-icons';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -16,8 +17,8 @@ import { ONBOARDING_STEPS } from '../../types';
 export type OnboardingShellProps = {
   /** 1-based position in `ONBOARDING_STEPS`. */
   step: number;
-  /** Emoji shown above the question — one per step, so the steps are distinct at a glance. */
-  icon: string;
+  /** Feather glyph shown above the question — one per step, so the steps are distinct at a glance. */
+  icon: ComponentProps<typeof Feather>['name'];
   title: string;
   subtitle?: string;
   ctaLabel?: string;
@@ -65,7 +66,7 @@ export function OnboardingShell({
               onPress={onBack}
               style={({ pressed }) => [styles.back, pressed ? styles.backPressed : null]}
             >
-              {onBack ? <View style={styles.chevron} /> : null}
+              {onBack ? <Feather aria-hidden name="chevron-left" size={28} color={colors.text.primary} /> : null}
             </Pressable>
 
             <ProgressBar
@@ -87,7 +88,9 @@ export function OnboardingShell({
       >
         <View style={styles.body}>
           <View style={styles.heading}>
-            <Text style={styles.icon}>{icon}</Text>
+            <View style={styles.iconTile}>
+              <Feather aria-hidden name={icon} size={30} color={colors.text.primary} />
+            </View>
             <Text variant="title" color="primary" align="center">
               {title}
             </Text>
@@ -127,20 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   backPressed: { backgroundColor: colors.surface.pressed },
-  // Two borders of a square, turned 45° into a chevron. Drawn rather than taken
-  // from an icon font: one glyph does not justify a font download, and a view
-  // stays crisp at every density. The nudge right re-centres the visible stroke,
-  // which after rotation sits left of the box's centre.
-  chevron: {
-    width: 13,
-    height: 13,
-    marginLeft: 5,
-    borderLeftWidth: 2.5,
-    borderBottomWidth: 2.5,
-    borderColor: colors.text.primary,
-    borderBottomLeftRadius: 2,
-    transform: [{ rotate: '45deg' }],
-  },
   progress: { flex: 1 },
   scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
   body: {
@@ -150,8 +139,16 @@ const styles = StyleSheet.create({
     gap: spacing.xxl,
   },
   heading: { gap: spacing.sm, alignItems: 'center', paddingTop: spacing.lg },
-  icon: { fontSize: 56, lineHeight: 66, marginBottom: spacing.sm },
-  /** No divider: on a white ground a hairline above the CTA reads as a seam. */
+  iconTile: {
+    width: 64,
+    height: 64,
+    marginBottom: spacing.sm,
+    borderRadius: radius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.brand.tint,
+  },
+  /** No divider: on paper a hairline above the CTA reads as a seam. */
   footer: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,

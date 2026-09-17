@@ -18,7 +18,7 @@ export default function HobbyScreen() {
   return (
     <OnboardingShell
       step={2}
-      icon="🎯"
+      icon="compass"
       title={`What do you want to get good at, ${firstName}?`}
       subtitle="Anything counts. One at a time, so it gets your full attention."
       ctaDisabled={!stepIsComplete.hobby(answers)}

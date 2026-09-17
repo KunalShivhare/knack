@@ -1,8 +1,9 @@
+import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Medium } from '@/shared/contracts';
-import { Text } from '@/shared/components/atoms';
-import { colors, radius, spacing } from '@/theme';
+import { Button, Text } from '@/shared/components/atoms';
+import { colors, radius, shadows, spacing } from '@/theme';
 
 import { MediumTag } from './MediumTag';
 
@@ -18,6 +19,8 @@ export type PathNodeProps = {
   summary?: string;
   /** A short status line, such as what a struck technique was swapped for. */
   note?: string;
+  /** The current technique's call to action. Pressing it does what pressing the node does. */
+  cta?: string;
   /** Drops the line to the next node. */
   last?: boolean;
   onPress?: () => void;
@@ -25,8 +28,10 @@ export type PathNodeProps = {
 
 /**
  * One stop on the path: a marker on a continuous line, then the technique.
- * The line is dark behind mastered techniques, so how far along the learner is
- * reads from the shape of the path before any number does.
+ * Each state has its own mark — a green tick behind, an ink ring with a marigold
+ * centre for now, a hollow ring ahead — and the line turns green behind mastered
+ * techniques, so how far along the learner is reads from the shape of the path
+ * before any number does.
  */
 export function PathNode({
   state,
@@ -35,15 +40,20 @@ export function PathNode({
   minutes,
   summary,
   note,
+  cta,
   last = false,
   onPress,
 }: PathNodeProps) {
   const current = state === 'current';
   const struck = state === 'struck';
+  const showCta = current && Boolean(cta) && Boolean(onPress);
 
   return (
     <Pressable
-      accessibilityRole={onPress ? 'button' : undefined}
+      // With its own button inside, the card is only a larger tap target: a
+      // second button role would nest a <button> in a <button> on web, and
+      // announce the same action twice to a screen reader.
+      accessibilityRole={onPress && !showCta ? 'button' : undefined}
       accessibilityState={{ disabled: !onPress }}
       disabled={!onPress}
       onPress={onPress}
@@ -63,7 +73,7 @@ export function PathNode({
         ) : (
           <>
             {current ? (
-              <Text variant="label" color="secondary">
+              <Text variant="label" color="link">
                 Up next
               </Text>
             ) : null}
@@ -94,6 +104,7 @@ export function PathNode({
                 {note}
               </Text>
             ) : null}
+            {showCta && cta ? <Button block size="md" label={cta} onPress={onPress} style={styles.cta} /> : null}
           </>
         )}
       </View>
@@ -106,15 +117,15 @@ function Marker({ state }: { state: PathNodeState }) {
     case 'mastered':
       return (
         <View style={[styles.marker, styles.markerDone]}>
-          <Text variant="bodyStrong" color="inverse" style={styles.check}>
-            ✓
-          </Text>
+          <Feather aria-hidden name="check" size={16} color={colors.common.white} />
         </View>
       );
     case 'current':
       return (
-        <View style={[styles.marker, styles.markerCurrent]}>
-          <View style={styles.dot} />
+        <View style={styles.halo}>
+          <View style={[styles.marker, styles.markerCurrent]}>
+            <View style={styles.dot} />
+          </View>
         </View>
       );
     case 'struck':
@@ -129,6 +140,7 @@ function Marker({ state }: { state: PathNodeState }) {
 }
 
 const MARKER = 28;
+const HALO = 4;
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: spacing.md },
@@ -141,18 +153,20 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.border.default,
   },
-  lineDone: { backgroundColor: colors.brand.default },
+  lineDone: { backgroundColor: colors.status.success },
   body: { flex: 1, gap: spacing.xs, paddingBottom: spacing.xl, minHeight: MARKER },
   lastBody: { paddingBottom: 0 },
   // The current technique is lifted into a card: it is the only one that needs action now.
   card: {
     padding: spacing.lg,
     marginBottom: spacing.xl,
-    borderWidth: 1.5,
-    borderColor: colors.brand.default,
+    borderWidth: 2,
+    borderColor: colors.text.primary,
     borderRadius: radius.xl,
     backgroundColor: colors.surface.default,
+    ...shadows.sm,
   },
+  cta: { marginTop: spacing.sm },
   meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xxs },
   strike: { textDecorationLine: 'line-through' },
   marker: {
@@ -161,17 +175,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1.5,
     borderColor: colors.border.strong,
-    backgroundColor: colors.surface.default,
+    backgroundColor: colors.surface.canvas,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  markerDone: { backgroundColor: colors.brand.default, borderColor: colors.brand.default },
-  markerCurrent: { borderWidth: 2.5, borderColor: colors.brand.default },
+  markerDone: { backgroundColor: colors.status.success, borderColor: colors.status.success },
+  markerCurrent: { borderWidth: 2.5, borderColor: colors.text.primary, backgroundColor: colors.surface.default },
+  // A soft marigold ring around the current marker. The negative margin keeps it
+  // out of the layout, so the rail's line still meets the marker itself.
+  halo: { padding: HALO, margin: -HALO, borderRadius: radius.pill, backgroundColor: colors.brand.tint },
   markerFaint: { borderColor: colors.border.default },
-  check: { lineHeight: 18 },
-  dot: { width: 10, height: 10, borderRadius: radius.pill, backgroundColor: colors.brand.default },
+  dot: { width: 12, height: 12, borderRadius: radius.pill, backgroundColor: colors.brand.default },
   dash: { width: 10, height: 2, borderRadius: radius.pill, backgroundColor: colors.border.strong },
-  skeleton: { height: 12, borderRadius: radius.pill, backgroundColor: colors.surface.muted },
+  skeleton: { height: 12, borderRadius: radius.pill, backgroundColor: colors.surface.panel },
   skeletonTitle: { width: '70%', height: 16, marginTop: spacing.xs },
   skeletonMeta: { width: '40%' },
 });

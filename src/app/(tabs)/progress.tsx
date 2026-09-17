@@ -12,10 +12,12 @@ import {
   practiceGrid,
   startOfWeek,
   useJourney,
+  weekBar,
+  type WeekBar,
 } from '@/modules/journey';
 import { useOnboarding } from '@/modules/onboarding';
 import { Button, ProgressBar, Text } from '@/shared/components/atoms';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, shadows, spacing } from '@/theme';
 
 const MAX_WIDTH = 520;
 
@@ -43,8 +45,8 @@ export default function ProgressScreen() {
 
   const mastery = masteryOf(journey);
   const budget = BUDGET_MINUTES[journey.profile.weeklyHours];
-  const weekTarget = budget.max ?? budget.min;
   const thisWeek = minutesSince(journey.practice, startOfWeek(now));
+  const bar = weekBar(thisWeek, budget);
   const mastered = journey.techniques.filter((technique) => technique.status === 'mastered');
 
   const startNewPlan = () => {
@@ -76,9 +78,9 @@ export default function ProgressScreen() {
 
         <Card>
           <View style={styles.stats}>
-            <Stat value={mastery.mastered} label="mastered" />
-            <Stat value={mastery.toGo} label="to go" />
-            <Stat value={mastery.struck} label="struck" />
+            <Stat value={mastery.mastered} label="mastered" tone={colors.status.success} />
+            <Stat value={mastery.toGo} label="to go" tone={colors.brand.strong} />
+            <Stat value={mastery.struck} label="struck" tone={colors.status.struck} />
           </View>
           <ProgressBar total={mastery.mastered + mastery.toGo} current={mastery.mastered} />
           <Text variant="body" color="secondary">
@@ -88,17 +90,35 @@ export default function ProgressScreen() {
 
         <Card title="This week">
           <View style={styles.week}>
-            <Text variant="title" color="primary">
+            <Text variant="stat" color="primary">
               {formatMinutes(thisWeek)}
             </Text>
             <Text variant="body" color="secondary">
               of {budget.label} a week
             </Text>
           </View>
-          <ProgressBar total={weekTarget} current={Math.min(thisWeek, weekTarget)} />
+          <WeekTrack bar={bar} />
+          <View style={styles.scale}>
+            <Text variant="caption" color="tertiary">
+              0
+            </Text>
+            {bar.marker !== null ? (
+              <Text
+                variant="caption"
+                color="tertiary"
+                align="center"
+                style={[styles.target, { left: `${bar.marker * 100}%` }]}
+              >
+                {formatMinutes(budget.min)} target
+              </Text>
+            ) : null}
+            <Text variant="caption" color="tertiary">
+              {formatMinutes(bar.scale)}
+            </Text>
+          </View>
           {thisWeek === 0 ? (
             <Text variant="body" color="secondary">
-              Log a session from any technique and it shows up here.
+              Log your first session — open a technique and tap 10, 20 or 30 min.
             </Text>
           ) : null}
         </Card>
@@ -137,16 +157,16 @@ export default function ProgressScreen() {
               variant="ghost"
               size="md"
               label="Keep this plan"
-              style={styles.newPlan}
+              style={styles.centred}
               onPress={() => setConfirmingReset(false)}
             />
           </View>
         ) : (
           <Button
-            variant="ghost"
+            variant="secondary"
             size="md"
             label="Start a new plan"
-            style={styles.newPlan}
+            style={styles.centred}
             onPress={() => setConfirmingReset(true)}
           />
         )}
@@ -168,37 +188,76 @@ function Card({ title, children }: { title?: string; children: ReactNode }) {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+/** A count with a coloured key, so each figure matches its mark on the path. */
+function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
   return (
     <View style={styles.stat}>
-      <Text variant="title" color="primary">
+      <Text variant="stat" color="primary">
         {value}
       </Text>
-      <Text variant="body" color="secondary">
-        {label}
-      </Text>
+      <View style={styles.statLabel}>
+        <View style={[styles.key, { backgroundColor: tone }]} />
+        <Text variant="body" color="secondary">
+          {label}
+        </Text>
+      </View>
     </View>
   );
 }
+
+/** This week's minutes against the budget, with the weekly floor marked when there is one. */
+function WeekTrack({ bar }: { bar: WeekBar }) {
+  return (
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(bar.fill * 100) }}
+      style={styles.track}
+    >
+      <View style={[styles.trackFill, { width: `${bar.fill * 100}%` }]} />
+      {bar.marker !== null ? <View style={[styles.marker, { left: `${bar.marker * 100}%` }]} /> : null}
+    </View>
+  );
+}
+
+const TRACK = 10;
+const TARGET_LABEL = 88;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface.canvas },
   content: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xxxl },
   inner: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center', gap: spacing.lg },
   heading: { gap: spacing.xxs, marginBottom: spacing.sm },
+  // White on paper with a soft shadow: separated by fill, not by an outline.
   card: {
     gap: spacing.md,
     padding: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: colors.border.default,
     borderRadius: radius.xl,
     backgroundColor: colors.surface.default,
+    ...shadows.sm,
   },
   stats: { flexDirection: 'row' },
   stat: { flex: 1, gap: spacing.xxs },
+  statLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  key: { width: 8, height: 8, borderRadius: radius.pill },
   week: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+  track: { height: TRACK, borderRadius: radius.pill, backgroundColor: colors.progress.track },
+  trackFill: { height: '100%', borderRadius: radius.pill, backgroundColor: colors.progress.fill },
+  // Overhangs the track so the floor reads as a line across it, not a notch.
+  marker: {
+    position: 'absolute',
+    top: -4,
+    bottom: -4,
+    width: 2,
+    marginLeft: -1,
+    borderRadius: radius.pill,
+    backgroundColor: colors.text.primary,
+  },
+  scale: { flexDirection: 'row', justifyContent: 'space-between' },
+  // Centred under the marker rather than between the ends, which only lines up
+  // when the floor happens to sit halfway.
+  target: { position: 'absolute', width: TARGET_LABEL, marginLeft: -TARGET_LABEL / 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowTitle: { flex: 1 },
-  newPlan: { alignSelf: 'center' },
+  centred: { alignSelf: 'center' },
   confirm: { gap: spacing.md, marginTop: spacing.sm },
 });

@@ -29,7 +29,7 @@ export default function MotivationScreen() {
   return (
     <OnboardingShell
       step={4}
-      icon="⏳"
+      icon="clock"
       title="Last one — how much time, and why now?"
       ctaLabel="Build my plan"
       ctaDisabled={!stepIsComplete.motivation(answers)}

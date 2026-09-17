@@ -46,6 +46,17 @@ export function PracticeHeatmap({ grid }: PracticeHeatmapProps) {
           })}
         </View>
       ))}
+      <View style={styles.legend}>
+        <Text variant="caption" color="tertiary">
+          Less
+        </Text>
+        {colors.progress.heatmap.map((shade) => (
+          <View key={shade} style={[styles.legendCell, { backgroundColor: shade }]} />
+        ))}
+        <Text variant="caption" color="tertiary">
+          More
+        </Text>
+      </View>
     </View>
   );
 }
@@ -56,4 +67,6 @@ const styles = StyleSheet.create({
   weekday: { width: 16 },
   cell: { flex: 1, aspectRatio: 1, maxWidth: 36, borderRadius: radius.sm },
   future: { borderWidth: 1, borderColor: colors.border.subtle },
+  legend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.xs, marginTop: spacing.xs },
+  legendCell: { width: 12, height: 12, borderRadius: radius.sm },
 });

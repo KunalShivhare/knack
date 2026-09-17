@@ -1,6 +1,7 @@
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { Chip } from '@/shared/components/atoms';
+import { haptics } from '@/shared/lib/haptics';
 import { spacing } from '@/theme';
 
 export type ChipOption = {
@@ -41,7 +42,10 @@ export function ChipGroup({
           emoji={option.emoji}
           selected={value === option.id}
           block={layout === 'stack'}
-          onPress={() => onChange(option.id)}
+          onPress={() => {
+            if (value !== option.id) haptics.select();
+            onChange(option.id);
+          }}
         />
       ))}
     </View>

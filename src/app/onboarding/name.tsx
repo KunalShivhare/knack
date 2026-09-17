@@ -12,7 +12,7 @@ export default function NameScreen() {
   return (
     <OnboardingShell
       step={1}
-      icon="👋"
+      icon="smile"
       title="First — what should we call you?"
       subtitle="Your plan talks to you directly, so it helps to have a name."
       ctaDisabled={!stepIsComplete.name(answers)}

@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
@@ -5,16 +6,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HOBBY_DRIFT, HobbyDrift } from '@/modules/onboarding';
 import { Button, Text } from '@/shared/components/atoms';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 const MAX_WIDTH = 520;
 
 /**
- * Where the wash stops being white and starts becoming grey. Held white behind
+ * Where the wash stops being paper and starts warming into the panel tone. Held white behind
  * the wordmark so the type stays crisp, then ramped so the lower half carries
  * real tone rather than a shade nobody can see.
  */
 const WASH_STOPS = [0, 0.3, 1] as const;
+
+/** The promise in three facts, under the button that acts on it. */
+const PROOF = [
+  { icon: 'layers', label: '5–8 techniques' },
+  { icon: 'flag', label: 'Built for your goal' },
+  { icon: 'user-x', label: 'No account' },
+] as const;
 
 /**
  * Welcome. Wordmark and promise pinned at the top, hobby icons drifting
@@ -66,13 +74,19 @@ export default function WelcomeScreen() {
           <Button
             block
             label="Get started"
-            style={styles.cta}
             onPress={() => router.push('/onboarding/name')}
           />
 
-          <Text variant="caption" color="onWash" align="center">
-            No account. Nothing to sign up for.
-          </Text>
+          <View style={styles.proof}>
+            {PROOF.map((item) => (
+              <View key={item.label} style={styles.proofItem}>
+                <Feather aria-hidden name={item.icon} size={14} color={colors.text.secondary} />
+                <Text variant="caption" color="secondary">
+                  {item.label}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
     </View>
@@ -99,6 +113,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: spacing.lg,
   },
-  /** Lifted off the wash so it reads as floating rather than printed on it. */
-  cta: { ...shadows.lg, borderRadius: radius.pill },
+  proof: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: spacing.lg, rowGap: spacing.xs },
+  proofItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });

@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,7 +70,7 @@ export default function PathScreen() {
 
         {current ? null : (
           <View style={styles.finished}>
-            <Text style={styles.flag}>🏁</Text>
+            <Feather aria-hidden name="flag" size={24} color={colors.status.success} />
             <View style={styles.headerCopy}>
               <Text variant="subheadingStrong" color="primary">
                 Path complete
@@ -91,6 +92,7 @@ export default function PathScreen() {
               minutes={technique.drill.minutes}
               summary={technique.summary}
               note={noteFor(technique, titles)}
+              cta="Start lesson"
               last={index === journey.techniques.length - 1}
               onPress={() =>
                 router.push({ pathname: '/technique/[id]', params: { id: technique.id } })
@@ -131,7 +133,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
     borderRadius: radius.xl,
-    backgroundColor: colors.surface.muted,
+    backgroundColor: colors.status.successBg,
   },
-  flag: { fontSize: 28, lineHeight: 34 },
 });

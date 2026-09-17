@@ -1,8 +1,7 @@
 import { Platform, type ViewStyle } from 'react-native';
 
-/** Near-black, matching the ramp. Shadows stay faint — on a monochrome canvas a
- * heavy shadow competes with the near-black accent for attention. */
-const shadowColor = '#0A0A0A';
+/** Warm brown at low opacity: a grey shadow on paper looks like dirt, not depth. */
+const shadowColor = '#503214';
 
 const build = (
   offsetY: number,

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/shared/components/atoms';
+import { haptics } from '@/shared/lib/haptics';
 import { colors, radius, spacing } from '@/theme';
 
 export type OptionTileProps = {
@@ -25,7 +26,10 @@ export function OptionTile({ label, description, selected, onPress, leading }: O
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={() => {
+        if (!selected) haptics.select();
+        onPress();
+      }}
       style={({ pressed }) => [
         styles.tile,
         selected ? styles.selected : null,
@@ -58,16 +62,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.lg,
     backgroundColor: colors.surface.default,
-    borderWidth: 1.5,
+    // Two points in both states, so selecting a tile never shifts its contents.
+    borderWidth: 2,
     borderColor: colors.border.default,
     borderRadius: radius.xl,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
   },
-  // Stays white: filling a full-width row black would swamp the screen and
-  // spend the 10% on a choice rather than on the CTA. The border and the radio
-  // carry the state instead.
-  selected: { borderColor: colors.brand.default },
+  // A tint and an ink outline: the choice reads at a glance without filling a
+  // full-width row with the marigold the CTA below it needs.
+  selected: { backgroundColor: colors.brand.tint, borderColor: colors.text.primary },
   pressed: { transform: [{ scale: 0.99 }] },
   copy: { flex: 1, gap: spacing.xxs },
   radio: {
@@ -79,6 +83,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioOn: { borderColor: colors.brand.default, borderWidth: 2 },
-  dot: { width: 12, height: 12, borderRadius: radius.pill, backgroundColor: colors.brand.default },
+  radioOn: { borderColor: colors.text.primary, borderWidth: 2 },
+  dot: { width: 12, height: 12, borderRadius: radius.pill, backgroundColor: colors.text.primary },
 });
