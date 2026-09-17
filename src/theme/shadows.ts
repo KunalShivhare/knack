@@ -2,6 +2,7 @@ import { Platform, type ViewStyle } from 'react-native';
 
 /** Warm brown at low opacity: a grey shadow on paper looks like dirt, not depth. */
 const shadowColor = '#503214';
+const shadowRgb = '80, 50, 20';
 
 const build = (
   offsetY: number,
@@ -11,6 +12,8 @@ const build = (
 ): ViewStyle =>
   Platform.select({
     android: { elevation, shadowColor },
+    // react-native-web deprecates the shadow* props; the same shadow as CSS.
+    web: { boxShadow: `0px ${offsetY}px ${blur}px rgba(${shadowRgb}, ${opacity})` },
     default: {
       shadowColor,
       shadowOffset: { width: 0, height: offsetY },

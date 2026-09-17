@@ -11,6 +11,7 @@ import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { JourneyProvider } from '@/modules/journey';
@@ -45,7 +46,11 @@ void SplashScreen.preventAutoHideAsync();
  */
 const TECHNIQUE_SHEET = {
   presentation: 'formSheet' as const,
-  sheetAllowedDetents: [0.92],
+  // A little of the path stays visible above the sheet on native. On web the
+  // sheet library draws a fractional detent by sliding a full-height sheet down,
+  // which pushes the lesson's pinned action bar off the bottom of the screen, so
+  // the web sheet opens at full height instead.
+  sheetAllowedDetents: Platform.OS === 'web' ? [1] : [0.92],
   sheetGrabberVisible: true,
   sheetCornerRadius: 24,
   // Desktop only: the default modal runs the explainer past 120 characters a

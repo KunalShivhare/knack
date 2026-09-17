@@ -6,6 +6,9 @@ import { colors, radius, spacing } from '@/theme';
 import { heatLevel } from '../../state/selectors';
 
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const WEEKDAY_WIDTH = 16;
+/** Past this a cell stops reading as a day and starts reading as a tile. */
+const CELL_MAX = 36;
 
 export type PracticeHeatmapProps = {
   /** Minutes per day: one row per week, oldest first; `null` for days still to come. */
@@ -23,7 +26,9 @@ export function PracticeHeatmap({ grid }: PracticeHeatmapProps) {
     <View
       accessibilityRole="image"
       accessibilityLabel={`Practised on ${practised} of the last ${grid.length * 7} days`}
-      style={styles.root}
+      // Capped at the width the rows can fill, so on a wide card the legend ends
+      // where the grid does instead of at the far edge of the card.
+      style={[styles.root, { maxWidth: WEEKDAY_WIDTH + grid.length * (CELL_MAX + spacing.xs) }]}
     >
       {WEEKDAYS.map((weekday, day) => (
         <View key={day} style={styles.row}>
@@ -62,10 +67,10 @@ export function PracticeHeatmap({ grid }: PracticeHeatmapProps) {
 }
 
 const styles = StyleSheet.create({
-  root: { gap: spacing.xs },
+  root: { width: '100%', gap: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  weekday: { width: 16 },
-  cell: { flex: 1, aspectRatio: 1, maxWidth: 36, borderRadius: radius.sm },
+  weekday: { width: WEEKDAY_WIDTH },
+  cell: { flex: 1, aspectRatio: 1, borderRadius: radius.sm },
   future: { borderWidth: 1, borderColor: colors.border.subtle },
   legend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.xs, marginTop: spacing.xs },
   legendCell: { width: 12, height: 12, borderRadius: radius.sm },

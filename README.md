@@ -189,7 +189,7 @@ practice days.
 
 ## Platform notes
 
-Five things differ from the Expo template, each for a reason worth stating:
+Eight things differ from the Expo template, each for a reason worth stating:
 
 - **React Compiler is off** (`expo.experiments.reactCompiler`). With it enabled,
   the Android build dies during React Native's own environment setup with
@@ -216,6 +216,19 @@ Five things differ from the Expo template, each for a reason worth stating:
   bottom sheet only hands a downward drag to content that declares it can
   scroll; without `nestedScrollEnabled`, dragging the lesson back up closes the
   sheet instead.
+- **The web sheet opens at full height.** On web the sheet library draws a
+  fractional detent by sliding a full-height sheet down, so at `0.92` the bottom
+  8% of the sheet — where the lesson's pinned action bar lives — sat below the
+  screen. Native keeps `0.92`; web uses `1`.
+- **A lesson opened from a link rebuilds the path under it.** A refresh or a
+  shared URL leaves the sheet as the only screen, so the close button, a drag,
+  Escape and the back button all had nowhere to go. The sheet resets the stack
+  to the tabs with itself on top. expo-router's anchor setting would do this
+  too, but it anchors every root route, onboarding included.
+- **Server-rendered layout avoids the window size.** Web pages render on the
+  server, where the window has no width, and the browser keeps that markup's
+  styles when it takes over. The welcome screen's drifting tiles are therefore
+  placed in percentages; only the drift's speed reads the real width.
 
 ## Configuration
 

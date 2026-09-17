@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,8 +46,21 @@ export default function TechniqueSheet() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { journey, logPractice } = useJourney();
+  const navigation = useNavigation();
 
   const technique = journey?.techniques.find((item) => item.id === id) ?? null;
+
+  // Opened straight from a link or a refresh, the sheet is the only screen in the
+  // stack, so closing it — by the ×, a drag, Escape or the back button — has
+  // nowhere to return to. Putting the path underneath gives every one of those
+  // somewhere to go, and the lesson stays open on top.
+  useEffect(() => {
+    if (!technique || navigation.canGoBack()) return;
+    navigation.reset({
+      index: 1,
+      routes: [{ name: '(tabs)' }, { name: 'technique/[id]', params: { id: technique.id } }] as never,
+    });
+  }, [navigation, technique]);
   // Tagged with the technique, because opening a replacement reuses this screen.
   const [logged, setLogged] = useState<{ techniqueId: string; minutes: number } | null>(null);
   // The technique mastered while this sheet was open. Only it celebrates;
@@ -60,7 +73,13 @@ export default function TechniqueSheet() {
         <Text variant="body" color="secondary" align="center">
           This technique is no longer in your plan.
         </Text>
-        <Button variant="secondary" size="md" label="Close" onPress={() => router.back()} />
+        <Button
+          variant="secondary"
+          size="md"
+          label="Close"
+          // Nothing to show here, and possibly nothing behind: the gate sends the learner where they belong.
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        />
       </View>
     );
   }

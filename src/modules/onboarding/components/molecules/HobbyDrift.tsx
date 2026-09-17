@@ -16,7 +16,7 @@ export type DriftingHobby = {
 
 export type HobbyDriftProps = {
   hobbies: readonly DriftingHobby[];
-  /** Screen width. One run is made wider than this so the field never runs out. */
+  /** Screen width, which sets how far one loop travels. Layout itself is in percentages. */
   width: number;
   /** Points per second. Low numbers only — this is ambience, not motion design. */
   speed?: number;
@@ -38,6 +38,12 @@ const TILE = 1.15;
  * Authored also means fixed — nothing is randomised at runtime. A field that
  * reshuffles on every launch feels unstable, and makes screenshot diffs
  * worthless.
+ *
+ * The field is laid out in percentages of the screen, not points. On web the
+ * page is rendered on the server, where the window has no width, and the
+ * browser keeps that markup's styles when it takes over; point positions
+ * computed from a zero width left every tile stacked at the left edge. Only the
+ * drift's distance needs the real width, and the animation runs in the browser.
  */
 export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
   const runWidth = width * RUN_RATIO;
@@ -76,7 +82,7 @@ export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
       <Animated.View
         style={[
           styles.strip,
-          { width: runWidth * 2, transform: [{ translateX }] },
+          { width: `${RUN_RATIO * 2 * 100}%`, transform: [{ translateX }] },
         ]}
       >
         {[0, 1].map((copy) =>
@@ -86,7 +92,8 @@ export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
               style={[
                 styles.tile,
                 {
-                  left: copy * runWidth + hobby.x * runWidth,
+                  // One run is half the strip.
+                  left: `${((copy + hobby.x) / 2) * 100}%`,
                   top: `${hobby.y * 100}%`,
                   width: hobby.size * TILE,
                   height: hobby.size * TILE,
