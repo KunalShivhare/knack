@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
 import { colors, shadows } from '@/theme';
 
@@ -60,7 +60,8 @@ export function HobbyDrift({ hobbies, width, speed = 16 }: HobbyDriftProps) {
         toValue: 1,
         duration: (runWidth / speed) * 1000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        // Web has no native animation module; asking for one there only logs a warning.
+        useNativeDriver: Platform.OS !== 'web',
       }),
     );
 

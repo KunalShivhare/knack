@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Animated, Easing, type ViewStyle } from 'react-native';
+import { Animated, Easing, Platform, type ViewStyle } from 'react-native';
 
 export type RevealProps = {
   children: ReactNode;
@@ -22,7 +22,8 @@ export function Reveal({ children, style }: RevealProps) {
       toValue: 1,
       duration: DURATION_MS,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      // Web has no native animation module; asking for one there only logs a warning.
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   }, [progress]);
 
