@@ -352,7 +352,13 @@ function Actions({ journey, technique, celebrate, onMastered }: ActionsProps) {
 
   return (
     <View style={styles.row}>
-      <Button variant="ghost" size="md" label="Strike out" onPress={() => setChoosingReason(true)} />
+      <Button
+        variant="ghost"
+        size="md"
+        label="Strike out"
+        style={styles.besidePrimary}
+        onPress={() => setChoosingReason(true)}
+      />
       <Button
         label="I've got it"
         style={styles.grow}
@@ -426,6 +432,9 @@ const styles = StyleSheet.create({
   actions: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   grow: { flex: 1 },
+  // A button hugs the top of its row by default; the shorter ghost button is
+  // centred against the primary one so the two labels share a baseline.
+  besidePrimary: { alignSelf: 'center' },
   mastered: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   seal: {
     width: 40,
