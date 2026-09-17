@@ -45,7 +45,13 @@ export default function PathScreen() {
     >
       <View style={styles.inner}>
         <View style={styles.header}>
-          <HobbyBadge hobby={journey.meta.hobby} emoji={hobbyEmoji(journey.profile.hobby)} size={56} />
+          <HobbyBadge
+            hobby={journey.meta.hobby}
+            // The app's own emoji for hobbies it knows, so onboarding and the plan match;
+            // the plan's for any other; a letter for plans saved before it had one.
+            emoji={hobbyEmoji(journey.profile.hobby) ?? journey.meta.emoji ?? undefined}
+            size={56}
+          />
           <View style={styles.headerCopy}>
             <Text variant="title" color="primary">
               {journey.meta.hobby}

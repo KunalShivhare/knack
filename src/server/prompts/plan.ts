@@ -20,7 +20,7 @@ export function planPrompt(profile: LearnerProfile): JsonPrompt {
       SELECTION_RULES,
       MEDIUM_RULES,
       writingRules(profile.weeklyHours),
-      'Also return "hobby", the hobby as a short display name, and "goal", the target restated as a short goal.',
+      'Also return "hobby", the hobby as a short display name, "goal", the target restated as a short goal, and "emoji", one emoji that stands for the hobby itself.',
       dataRule(['learner']),
     ].join('\n\n'),
     user: `${learnerBlock(profile)}\n\nDesign the plan: exactly ${count} techniques, in the order they should be learned.`,

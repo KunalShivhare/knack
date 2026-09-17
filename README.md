@@ -271,7 +271,8 @@ Type is two families. Bricolage Grotesque sets titles and figures; Figtree sets
 everything read at length. Each weight is registered as its own family, because
 Android ignores `fontWeight` on a custom font. Icons are Feather, drawn in the
 current text colour; emoji stay only where they are content, as the mark of a
-hobby.
+hobby. A hobby the app has no emoji for gets one from the model with its plan,
+kept only if it really is a single emoji.
 
 Primary buttons stand on a darker edge and sink onto it when pressed, and a
 disabled button sits already sunk. Touch feedback goes through three named

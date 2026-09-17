@@ -78,7 +78,11 @@ function Generation({ profile, stream, onRetry }: GenerationProps) {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.inner}>
           <View style={styles.hero}>
-            <HobbyBadge hobby={profile.hobby} emoji={hobbyEmoji(profile.hobby)} />
+            <HobbyBadge
+              hobby={profile.hobby}
+              // A hobby the app has no emoji for gets the plan's once the plan is done.
+              emoji={hobbyEmoji(profile.hobby) ?? (done ? (stream.meta.emoji ?? undefined) : undefined)}
+            />
             <Text variant="title" color="primary" align="center">
               {done ? `Your ${stream.meta.hobby} plan` : 'Building your plan'}
             </Text>

@@ -37,8 +37,8 @@ function technique(id: string, overrides: Partial<Technique> = {}): Technique {
   };
 }
 
-function planText(techniques: unknown[]): string {
-  return JSON.stringify({ hobby: 'Guitar', goal: 'Play a full song', techniques });
+function planText(techniques: unknown[], emoji: unknown = '🎸'): string {
+  return JSON.stringify({ hobby: 'Guitar', goal: 'Play a full song', emoji, techniques });
 }
 
 /** A fake Gemini stream that yields `text` in chunks, then optionally fails. */
@@ -70,8 +70,25 @@ describe('generatePlan', () => {
     expect(events.map((event) => event.type)).toEqual([
       'technique', 'technique', 'technique', 'technique', 'technique', 'done',
     ]);
-    expect(events.at(-1)).toEqual({ type: 'done', meta: { hobby: 'Guitar', goal: 'Play a full song' } });
+    expect(events.at(-1)).toEqual({ type: 'done', meta: { hobby: 'Guitar', goal: 'Play a full song', emoji: '🎸' } });
     expect(mockFallback).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a multi-codepoint emoji', '🧗\u200d♀️', '🧗\u200d♀️'],
+    ['a word instead of an emoji', 'guitar', null],
+    ['an emoji followed by text', '🎸 guitar', null],
+    ['a run of emoji', '🎸🎸🎸🎸🎸🎸🎸🎸🎸', null],
+    ['no emoji at all', null, null],
+  ])('keeps the hobby emoji only when it is one emoji: %s', async (_case, emoji, expected) => {
+    mockStream.mockReturnValue(chunks(planText(five, emoji)));
+
+    const events = await collect();
+
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      meta: { hobby: 'Guitar', goal: 'Play a full song', emoji: expected },
+    });
   });
 
   it('streams the first technique before the response has finished', async () => {

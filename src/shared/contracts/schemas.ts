@@ -134,11 +134,19 @@ export const PlanMetaSchema = z.object({
   goal: z.string().min(1).max(160).describe("The learner's target, restated as a short goal."),
 });
 
-export type PlanMeta = z.infer<typeof PlanMetaSchema>;
+export type PlanMeta = z.infer<typeof PlanMetaSchema> & {
+  /**
+   * One emoji for the hobby, so a hobby the app has no emoji for still gets a
+   * mark. `null` when the model's answer was not a single emoji; absent on plans
+   * saved before it was asked for.
+   */
+  emoji?: string | null;
+};
 
 /** The whole plan as the model produces it. `count` comes from the time budget. */
 export function planSchema(count: number) {
   return PlanMetaSchema.extend({
+    emoji: z.string().describe('One emoji that stands for the hobby itself, such as 🧘 for yoga.'),
     techniques: z.array(TechniqueSchema).min(count).max(count),
   });
 }

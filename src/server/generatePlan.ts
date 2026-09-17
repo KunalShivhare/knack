@@ -97,12 +97,33 @@ function uniqueId(id: string, taken: Set<string>): string {
   return candidate;
 }
 
-/** The model's display name and goal, or the learner's own words if those did not parse. */
+/**
+ * The model's display name and goal, or the learner's own words if those did not
+ * parse. The emoji is judged on its own, so a bad one costs only the emoji.
+ */
 function metaOf(text: string, profile: LearnerProfile): PlanMeta {
-  const parsed = PlanMetaSchema.safeParse(parseJson(text));
+  const json = parseJson(text);
+  const parsed = PlanMetaSchema.safeParse(json);
+  const emoji = emojiOf((json as { emoji?: unknown } | null)?.emoji);
+
   return parsed.success
-    ? { hobby: parsed.data.hobby, goal: parsed.data.goal }
-    : { hobby: profile.hobby, goal: profile.target };
+    ? { hobby: parsed.data.hobby, goal: parsed.data.goal, emoji }
+    : { hobby: profile.hobby, goal: profile.target, emoji };
+}
+
+/** Emoji code points only: pictographs, skin tones, joiners and the emoji presentation selector. */
+const EMOJI_ONLY = /^[\p{Extended_Pictographic}\p{Emoji_Modifier}\u200d\ufe0f]+$/u;
+
+/**
+ * The value if it is exactly one emoji, else `null`. Counted in graphemes, so a
+ * joined sequence like 🧗‍♀️ is one emoji and 🎸🎸 is two.
+ */
+function emojiOf(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+
+  const emoji = value.trim();
+  const graphemes = [...new Intl.Segmenter().segment(emoji)].length;
+  return graphemes === 1 && EMOJI_ONLY.test(emoji) ? emoji : null;
 }
 
 function parseJson(text: string): unknown {
