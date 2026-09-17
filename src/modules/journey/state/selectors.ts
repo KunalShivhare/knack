@@ -1,6 +1,18 @@
 import type { TimeBudgetId } from '@/shared/contracts';
 
+import { PICTURE_SEARCH_VERSION } from '../constants';
 import type { Journey, JourneyTechnique, PracticeEntry } from '../types';
+
+/**
+ * Whether a technique's picture still has to be looked up: it asks for one, and
+ * has neither a picture nor a "none" from the current search. A "none" from an
+ * older search is looked up again, once.
+ */
+export function needsPictureLookup(technique: JourneyTechnique): boolean {
+  if (typeof technique.imageQuery !== 'string') return false;
+  if (technique.image === undefined) return true;
+  return technique.image === null && technique.imageSearch !== PICTURE_SEARCH_VERSION;
+}
 
 /** The technique the learner is on: the first one neither mastered nor struck. */
 export function currentTechnique(journey: Journey): JourneyTechnique | null {

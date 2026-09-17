@@ -1,5 +1,6 @@
 import type { Technique } from '@/shared/contracts';
 
+import { PICTURE_SEARCH_VERSION } from '../../constants';
 import { createJourney, initialState, journeyReducer, type JourneyState } from '../reducer';
 
 function technique(id: string): Technique {
@@ -120,5 +121,11 @@ describe('journeyReducer', () => {
     const none = journeyReducer(found, { type: 'imageFound', techniqueId: 'b', image: null });
 
     expect(techniquesOf(none).map((technique) => technique.image)).toEqual([image, null, undefined]);
+    // Recorded so a "none" from an older search is tried again once the search improves.
+    expect(techniquesOf(none).map((technique) => technique.imageSearch)).toEqual([
+      PICTURE_SEARCH_VERSION,
+      PICTURE_SEARCH_VERSION,
+      undefined,
+    ]);
   });
 });

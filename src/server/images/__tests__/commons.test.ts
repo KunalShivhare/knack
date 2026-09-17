@@ -1,5 +1,6 @@
 /** @jest-environment node */
-import { creditOf, isCommonsFileUrl, toCandidates } from '../commons';
+import { creditOf, inTitleOrder, isCommonsFileUrl, toCandidates } from '../commons';
+import { leadImageTitles } from '../wikipedia';
 
 type Info = Record<string, unknown>;
 
@@ -7,6 +8,7 @@ type Info = Record<string, unknown>;
 function page(index: number, info: Info = {}, metadata: Record<string, string> = {}) {
   return {
     index,
+    title: `File:${index}.jpg`,
     imageinfo: [
       {
         mime: 'image/jpeg',
@@ -66,9 +68,13 @@ describe('toCandidates', () => {
     expect(candidates.map((candidate) => candidate.thumbUrl)).toEqual(['https://upload.wikimedia.org/thumb/3.jpg']);
   });
 
-  it('shows the model six candidates at most', () => {
+  it('keeps every usable file, so filtering for relevance still has enough to choose from', () => {
     const pages = Array.from({ length: 10 }, (_, index) => page(index + 1));
-    expect(toCandidates(payload(...pages))).toHaveLength(6);
+    expect(toCandidates(payload(...pages))).toHaveLength(10);
+  });
+
+  it('keeps the file title, which is what relevance is judged on', () => {
+    expect(toCandidates(payload(page(1)))[0].title).toBe('File:1.jpg');
   });
 
   it('treats an empty or malformed response as no results', () => {
@@ -122,5 +128,38 @@ describe('isCommonsFileUrl', () => {
     expect(isCommonsFileUrl('file:///etc/passwd')).toBe(false);
     expect(isCommonsFileUrl('not a url')).toBe(false);
     expect(isCommonsFileUrl(null)).toBe(false);
+  });
+});
+
+describe('inTitleOrder', () => {
+  it('orders looked-up files as they were asked for, skipping any Commons does not have', () => {
+    const ordered = inTitleOrder(payload(page(0, {}), { title: 'File:2.jpg' }, { ...page(0), title: 'File:1.jpg' }), [
+      'File:1.jpg',
+      'File:Missing.jpg',
+      'File:0.jpg',
+    ]);
+
+    expect(toCandidates(ordered).map((candidate) => candidate.title)).toEqual(['File:1.jpg', 'File:0.jpg']);
+  });
+});
+
+describe('leadImageTitles', () => {
+  it("lists each article's lead picture as a Commons file title, best article first", () => {
+    const search = {
+      query: {
+        pages: [
+          { index: 2, title: 'Asana', pageimage: 'Asanas_Composite.jpg' },
+          { index: 1, title: 'Virabhadrasana', pageimage: 'Virabhadrasana_I_-_Warrior_Pose_I.jpg' },
+          { index: 3, title: 'List of asanas' },
+        ],
+      },
+    };
+
+    expect(leadImageTitles(search)).toEqual(['File:Virabhadrasana I - Warrior Pose I.jpg', 'File:Asanas Composite.jpg']);
+  });
+
+  it('treats an empty or malformed response as no pictures', () => {
+    expect(leadImageTitles({})).toEqual([]);
+    expect(leadImageTitles(null)).toEqual([]);
   });
 });

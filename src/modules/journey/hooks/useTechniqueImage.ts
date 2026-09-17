@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { TechniqueImage } from '@/shared/contracts';
 
 import { requestImage } from '../api';
-import { useJourney } from '../state';
+import { needsPictureLookup, useJourney } from '../state';
 import type { JourneyTechnique } from '../types';
 
 export type TechniqueImageState =
@@ -27,7 +27,7 @@ export function useTechniqueImage(hobby: string, technique: JourneyTechnique): T
   const { id, title, summary, imageQuery } = technique;
   // No phrase means no picture: the plan asks for one only where copying a
   // physical action needs it. Plans saved before pictures existed have none.
-  const needed = typeof imageQuery === 'string' && technique.image === undefined && failedId !== id;
+  const needed = needsPictureLookup(technique) && failedId !== id;
 
   useEffect(() => {
     if (!needed || typeof imageQuery !== 'string') return;

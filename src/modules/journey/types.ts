@@ -16,6 +16,8 @@ export type JourneyTechnique = Technique & {
    * then, `null` once the lookup found none. Saved, so it is looked up once.
    */
   image?: TechniqueImage | null;
+  /** The `PICTURE_SEARCH_VERSION` that last looked this picture up. Absent before versions existed. */
+  imageSearch?: number;
 };
 
 export type PracticeEntry = {

@@ -6,6 +6,7 @@ export {
   generationStatus,
   masteryOf,
   minutesSince,
+  needsPictureLookup,
   practiceGrid,
   startOfWeek,
   weekBar,

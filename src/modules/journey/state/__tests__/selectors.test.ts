@@ -1,3 +1,4 @@
+import { PICTURE_SEARCH_VERSION } from '../../constants';
 import type { Journey, JourneyTechnique, PracticeEntry, TechniqueStatus } from '../../types';
 import {
   currentTechnique,
@@ -6,6 +7,7 @@ import {
   heatLevel,
   masteryOf,
   minutesSince,
+  needsPictureLookup,
   practiceGrid,
   startOfWeek,
   weekBar,
@@ -145,5 +147,40 @@ describe('weekBar', () => {
     expect(bar.scale).toBe(900);
     expect(bar.fill).toBe(1);
     expect(bar.marker).toBeCloseTo(2 / 3);
+  });
+});
+
+describe('needsPictureLookup', () => {
+  const asking = (overrides: Partial<JourneyTechnique>): JourneyTechnique => ({
+    ...entry('a', 'todo'),
+    imageQuery: 'guitar posture',
+    ...overrides,
+  });
+  const picture = {
+    url: 'https://upload.wikimedia.org/a.jpg',
+    width: 480,
+    height: 360,
+    caption: '',
+    credit: 'Jane Doe',
+    license: 'CC BY 4.0',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:a.jpg',
+  };
+
+  it('looks up a technique that asks for a picture and has not had one looked up', () => {
+    expect(needsPictureLookup(asking({}))).toBe(true);
+  });
+
+  it('never looks up a technique that asks for no picture', () => {
+    expect(needsPictureLookup(entry('a', 'todo'))).toBe(false);
+  });
+
+  it('keeps a picture once found', () => {
+    expect(needsPictureLookup(asking({ image: picture }))).toBe(false);
+  });
+
+  it('trusts "no picture" from the current search, and retries one from an older search', () => {
+    expect(needsPictureLookup(asking({ image: null, imageSearch: PICTURE_SEARCH_VERSION }))).toBe(false);
+    expect(needsPictureLookup(asking({ image: null }))).toBe(true);
+    expect(needsPictureLookup(asking({ image: null, imageSearch: PICTURE_SEARCH_VERSION - 1 }))).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import type { LearnerProfile, PlanMeta, StrikeReason, Technique, TechniqueImage } from '@/shared/contracts';
 
+import { PICTURE_SEARCH_VERSION } from '../constants';
 import type { Journey, JourneyTechnique, TechniqueStatus } from '../types';
 
 export type JourneyState = {
@@ -113,7 +114,11 @@ export function journeyReducer(state: JourneyState, action: JourneyAction): Jour
       }));
 
     case 'imageFound':
-      return updateTechnique(state, action.techniqueId, (technique) => ({ ...technique, image: action.image }));
+      return updateTechnique(state, action.techniqueId, (technique) => ({
+        ...technique,
+        image: action.image,
+        imageSearch: PICTURE_SEARCH_VERSION,
+      }));
 
     case 'left':
       return { ...state, activeId: null };

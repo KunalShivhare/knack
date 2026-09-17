@@ -7,12 +7,12 @@ const API_URL = 'https://commons.wikimedia.org/w/api.php';
  * agent, or Android's default one, gets a 403. Automated clients are asked to
  * name themselves and give a contact.
  */
-const USER_AGENT = 'Knack/1.0 (https://github.com/KunalShivhare/knack)';
+export const USER_AGENT = 'Knack/1.0 (https://github.com/KunalShivhare/knack)';
 
 /** Where Commons serves files from. The file route fetches from nowhere else. */
 const FILE_HOSTS = new Set(['upload.wikimedia.org', 'thumb.wikimedia.org']);
 
-/** Enough results to survive filtering; the model looks at no more than `MAX_CANDIDATES`. */
+/** Enough results to survive filtering; `MAX_CANDIDATES` caps what the model looks at, across all searches. */
 const SEARCH_LIMIT = 10;
 export const MAX_CANDIDATES = 6;
 
@@ -32,6 +32,8 @@ const MAX_ASPECT = 2.5;
 const MAX_DOWNLOAD_BYTES = 1_500_000;
 
 export type Candidate = {
+  /** The Commons file title, "File:…". Its words are what relevance is judged on. */
+  title: string;
   thumbUrl: string;
   width: number;
   height: number;
@@ -40,33 +42,64 @@ export type Candidate = {
   sourceUrl: string;
 };
 
+/** What every candidate needs to know about its file, as Commons API parameters. */
+const IMAGE_INFO = {
+  prop: 'imageinfo',
+  iiprop: 'url|mime|size|extmetadata',
+  iiurlwidth: String(THUMB_WIDTH),
+  iiextmetadatafilter: 'LicenseShortName|Artist',
+};
+
 /** Files on Wikimedia Commons matching `query`, best match first, already filtered to usable ones. */
 export async function searchCommons(query: string, signal: AbortSignal): Promise<Candidate[]> {
-  const params = new URLSearchParams({
-    action: 'query',
-    format: 'json',
-    formatversion: '2',
-    generator: 'search',
-    gsrnamespace: '6', // the File namespace
-    gsrlimit: String(SEARCH_LIMIT),
-    gsrsearch: `${query} filetype:bitmap|drawing`,
-    prop: 'imageinfo',
-    iiprop: 'url|mime|size|extmetadata',
-    iiurlwidth: String(THUMB_WIDTH),
-    iiextmetadatafilter: 'LicenseShortName|Artist',
-  });
+  return toCandidates(
+    await commonsQuery(
+      {
+        generator: 'search',
+        gsrnamespace: '6', // the File namespace
+        gsrlimit: String(SEARCH_LIMIT),
+        gsrsearch: `${query} filetype:bitmap|drawing`,
+      },
+      signal,
+    ),
+  );
+}
 
-  const response = await fetch(`${API_URL}?${params}`, {
-    headers: { 'User-Agent': USER_AGENT },
-    signal,
-  });
+/** Named Commons files as candidates, in the order given; files Commons does not hold are skipped. */
+export async function commonsFiles(titles: string[], signal: AbortSignal): Promise<Candidate[]> {
+  if (titles.length === 0) return [];
+  return toCandidates(inTitleOrder(await commonsQuery({ titles: titles.join('|') }, signal), titles));
+}
+
+async function commonsQuery(params: Record<string, string>, signal: AbortSignal): Promise<unknown> {
+  const query = new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', ...IMAGE_INFO, ...params });
+  const response = await fetch(`${API_URL}?${query}`, { headers: { 'User-Agent': USER_AGENT }, signal });
 
   if (!response.ok) throw new Error(`Wikimedia Commons responded ${response.status}.`);
-  return toCandidates(await response.json());
+  return response.json();
+}
+
+/**
+ * A lookup by title answers in no particular order, so each page is given the
+ * position its title was asked for, the way search results carry their rank.
+ */
+export function inTitleOrder(payload: unknown, titles: string[]): { query: { pages: CommonsPage[] } } {
+  const pages = (payload as { query?: { pages?: CommonsPage[] } })?.query?.pages ?? [];
+  const byTitle = new Map(pages.map((page) => [page.title, page]));
+
+  return {
+    query: {
+      pages: titles.flatMap((title, index) => {
+        const page = byTitle.get(title);
+        return page ? [{ ...page, index }] : [];
+      }),
+    },
+  };
 }
 
 type CommonsPage = {
   index?: number;
+  title?: string;
   imageinfo?: {
     mime?: string;
     width?: number;
@@ -93,7 +126,7 @@ export function toCandidates(payload: unknown): Candidate[] {
 
   for (const page of pages) {
     const info = page.imageinfo?.[0];
-    if (!info?.mime || !ACCEPTED_MIME.has(info.mime)) continue;
+    if (!page.title || !info?.mime || !ACCEPTED_MIME.has(info.mime)) continue;
     if (!info.thumburl || !info.thumbwidth || !info.thumbheight || !info.descriptionurl) continue;
 
     const license = plainText(info.extmetadata?.LicenseShortName?.value);
@@ -106,6 +139,7 @@ export function toCandidates(payload: unknown): Candidate[] {
     if (aspect > MAX_ASPECT || aspect < 1 / MAX_ASPECT) continue;
 
     candidates.push({
+      title: page.title,
       thumbUrl: info.thumburl,
       width: info.thumbwidth,
       height: info.thumbheight,
@@ -115,7 +149,7 @@ export function toCandidates(payload: unknown): Candidate[] {
     });
   }
 
-  return candidates.slice(0, MAX_CANDIDATES);
+  return candidates;
 }
 
 /** A thumbnail as model input, or `null` if it could not be fetched as a reasonably sized image. */

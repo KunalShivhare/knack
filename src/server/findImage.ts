@@ -1,6 +1,7 @@
 import type { ImageRequest, TechniqueImage } from '@/shared/contracts';
 
 import { MAX_CANDIDATES, downloadThumbnail, searchCommons, type Candidate } from './images/commons';
+import { wikipediaLeadImages } from './images/wikipedia';
 import { LlmError, generateJsonFromImages } from './llm';
 import { ImageChoiceSchema, imagePrompt } from './prompts/image';
 
@@ -12,11 +13,21 @@ import { ImageChoiceSchema, imagePrompt } from './prompts/image';
  * downloaded and shown to Gemini, which judges each one and picks one a learner
  * could copy the technique from, or none. No picture is a normal answer; a
  * generic or unsuitable one is not.
+ *
+ * What the model is shown matters as much as how it judges: it can only pick
+ * from six. So the Wikipedia article pictures for the technique go first, the
+ * searches stay on the hobby, and files whose names have nothing to do with the
+ * technique or the hobby never take a place.
  */
 export async function findImage(request: ImageRequest, signal: AbortSignal): Promise<TechniqueImage | null> {
-  const queries = searchQueries(request.query);
-  const results = await Promise.all(queries.map((query) => searchCommons(query, signal)));
-  const candidates = interleave(results);
+  const keywords = keywordsOf(`${request.query} ${request.hobby}`);
+  const results = await Promise.all([
+    wikipediaLeadImages(request.query, signal),
+    ...searchQueries(request.query, request.hobby).map((query) => searchCommons(query, signal)),
+  ]);
+  const candidates = interleave(
+    results.map((list) => list.filter((candidate) => isRelevant(candidate.title, keywords))),
+  );
 
   const downloads = await Promise.all(
     candidates.map(async (candidate) => ({ candidate, image: await downloadThumbnail(candidate.thumbUrl, signal) })),
@@ -45,8 +56,8 @@ export async function findImage(request: ImageRequest, signal: AbortSignal): Pro
   };
 }
 
-/** Most searches one lookup may cost. */
-const MAX_SEARCHES = 5;
+/** Most Commons searches one lookup may cost. */
+const MAX_SEARCHES = 6;
 
 /**
  * Commons search requires every word to match, and ranks by text rather than by
@@ -54,21 +65,64 @@ const MAX_SEARCHES = 5;
  * guitarists; "guitar posture" finds the instructional ones. So the phrase is
  * searched as written, as a diagram (the shape tutorials usually take), and
  * with each word left out in turn, all at once.
+ *
+ * Two rules keep those searches on the hobby. The hobby's own word is never the
+ * one left out: without "yoga", "warrior one pose" is the Warrior Games. And a
+ * phrase that does not name the hobby is also searched with it, after its first
+ * two words: "downward dog hand placement" finds nothing, "downward dog Yoga"
+ * finds the pose.
  */
-export function searchQueries(query: string): string[] {
+export function searchQueries(query: string, hobby: string): string[] {
   const words = query.trim().split(/\s+/);
   const phrase = words.join(' ');
+  const hobbyWords = keywordsOf(hobby);
+  const namesHobby = (text: string) => [...keywordsOf(text)].some((word) => hobbyWords.has(word));
   const queries = [phrase];
 
   if (!/\b(diagram|illustration|drawing)\b/i.test(phrase)) queries.push(`${phrase} diagram`);
+  if (!namesHobby(phrase)) queries.push(`${words.slice(0, 2).join(' ')} ${hobby.trim()}`);
 
   if (words.length >= 3) {
-    for (let skip = 0; skip < words.length; skip += 1) {
-      queries.push(words.filter((_, index) => index !== skip).join(' '));
-    }
+    words.forEach((word, skip) => {
+      if (!namesHobby(word)) queries.push(words.filter((_, index) => index !== skip).join(' '));
+    });
   }
 
   return queries.slice(0, MAX_SEARCHES);
+}
+
+/** Words that say nothing about what a file shows. */
+const FILLER = new Set([
+  'the', 'and', 'for', 'with', 'from', 'into', 'onto', 'your', 'how', 'using',
+  'diagram', 'illustration', 'drawing', 'file', 'jpg', 'jpeg', 'png', 'svg', 'webp',
+]);
+
+/** Letters kept of each word, so "sautéing" meets "sauteed" and "warriors" meets "warrior". */
+const STEM = 5;
+
+/**
+ * The meaningful words of `text`, reduced so spellings of the same word match:
+ * lower case, accents dropped, cut to a short stem. Words under three letters
+ * and filler are left out.
+ */
+export function keywordsOf(text: string): Set<string> {
+  const words = text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word.length >= 3 && !FILLER.has(word));
+
+  return new Set(words.map((word) => word.slice(0, STEM)));
+}
+
+/**
+ * Whether a file's name shares a word with the technique or the hobby. Crude on
+ * purpose: it only has to stop a fire memorial or a painting from taking one of
+ * the six places, and the model still judges what is left.
+ */
+export function isRelevant(title: string, keywords: ReadonlySet<string>): boolean {
+  return [...keywordsOf(title)].some((word) => keywords.has(word));
 }
 
 /**

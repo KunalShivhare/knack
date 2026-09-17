@@ -16,3 +16,11 @@ export const MEDIUM_DISPLAY: Record<Medium, { icon: ComponentProps<typeof Feathe
 
 /** Session lengths offered by "Log practice". Three taps' worth, not a time picker. */
 export const PRACTICE_MINUTES = [10, 20, 30] as const;
+
+/**
+ * Which picture search a technique's "no picture" came from. Raised whenever the
+ * search improves, so lessons that found nothing before look once more; a
+ * picture already found is kept. Also sent with the lookup, so the CDN's cached
+ * answers from an older search are not reused.
+ */
+export const PICTURE_SEARCH_VERSION = 2;

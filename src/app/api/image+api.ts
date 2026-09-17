@@ -11,6 +11,8 @@ const TIMEOUT_MS = 75_000;
  *
  * A GET so the answer can be cached: the same technique asked for twice, from
  * any device, is served by the CDN without searching or calling the model again.
+ * The app adds a `v` parameter, which the route ignores: it only changes the
+ * URL when the search improves, so the CDN's older answers are not reused.
  */
 export async function GET(request: Request): Promise<Response> {
   const params = Object.fromEntries(new URL(request.url).searchParams);

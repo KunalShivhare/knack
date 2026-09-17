@@ -145,7 +145,13 @@ load one.
 `GET /api/image` searches with the phrase, with the phrase as a diagram, and with
 each word left out (Commons requires every word to match, so "guitar sitting
 posture" finds concert photos where "guitar posture" finds the instructional
-ones). Up to six thumbnails are shown to Gemini, which judges each one — safe for
+ones). Those searches are kept on the hobby: its own word is never the one left
+out — "warrior one pose" without "yoga" is the military's Warrior Games — and a
+phrase that does not name the hobby is also searched with it. The lead pictures
+of the best-matching Wikipedia articles go first, because an article about a
+named technique is usually led by a photo of exactly that. Any file whose name
+shares no word with the technique or the hobby is dropped before it can take a
+place. Up to six thumbnails are shown to Gemini, which judges each one — safe for
 all ages, demonstrates this exact step clearly enough to copy, or just generic
 (a class, an event, a portrait, equipment) — and picks one or none. The server
 refuses any pick the model's own verdict disqualifies, so a generic or
@@ -159,7 +165,10 @@ pictures are looked up in the background, one at a time in path order, and each
 one found is downloaded, so a lesson usually opens with its picture already
 there; opening a lesson mid-lookup shares the request rather than starting
 another. The answer is saved on the technique and the route is cached at the
-CDN for a week. Browsers load pictures straight from Wikimedia; native apps load
+CDN for a week. A saved "no picture" records which version of the search gave
+it (`PICTURE_SEARCH_VERSION`), and the version is part of the request URL, so
+when the search improves, lessons that found nothing look once more instead of
+keeping an old answer. Browsers load pictures straight from Wikimedia; native apps load
 them through `/api/image-file`, which fetches only Commons file URLs, because
 Wikimedia refuses Android's image loader and its user agent cannot be
 overridden. The sheet shows each picture with its author, licence and a link to

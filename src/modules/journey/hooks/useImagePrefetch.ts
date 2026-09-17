@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 
 import { pictureUrl, requestImage } from '../api';
-import { useJourney } from '../state';
+import { needsPictureLookup, useJourney } from '../state';
 
 /**
  * Finds the plan's pictures in the background, so a lesson usually opens with
@@ -20,8 +20,7 @@ export function useImagePrefetch(): void {
   const next = journey?.techniques.find(
     (technique) =>
       technique.status !== 'struck' &&
-      typeof technique.imageQuery === 'string' &&
-      technique.image === undefined &&
+      needsPictureLookup(technique) &&
       !failed.has(`${journey.id}:${technique.id}`),
   );
 

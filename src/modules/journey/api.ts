@@ -12,6 +12,8 @@ import type {
 import { api, apiUrl, type ApiError } from '@/shared/lib/http';
 import { readLines } from '@/shared/lib/stream/readLines';
 
+import { PICTURE_SEARCH_VERSION } from './constants';
+
 const DROPPED: ApiError = {
   kind: 'network',
   message: 'The connection dropped before your plan was finished. Try again.',
@@ -94,7 +96,8 @@ export function requestImage(request: ImageRequest): Promise<TechniqueImage | nu
 
   const lookup = api
     .get<{ image: TechniqueImage | null }, { image: TechniqueImage | null }>('/api/image', {
-      params: request,
+      // The version changes the URL, so a cached answer from an older search is not served.
+      params: { ...request, v: PICTURE_SEARCH_VERSION },
       timeout: IMAGE_TIMEOUT_MS,
     })
     .then((response) => response.image)

@@ -1,8 +1,9 @@
 /** @jest-environment node */
 import type { Candidate } from '../images/commons';
-import { interleave, parseChoice, searchQueries } from '../findImage';
+import { interleave, isRelevant, keywordsOf, parseChoice, searchQueries } from '../findImage';
 
 const candidate = (name: string): Candidate => ({
+  title: `File:${name}.jpg`,
   thumbUrl: `https://upload.wikimedia.org/${name}.jpg`,
   width: 480,
   height: 360,
@@ -13,25 +14,63 @@ const candidate = (name: string): Candidate => ({
 
 describe('searchQueries', () => {
   it('searches the phrase, the phrase as a diagram, and the phrase with each word left out', () => {
-    expect(searchQueries('guitar sitting posture')).toEqual([
+    expect(searchQueries('chef knife pinch grip', 'Cooking')).toEqual([
+      'chef knife pinch grip',
+      'chef knife pinch grip diagram',
+      'chef knife Cooking',
+      'knife pinch grip',
+      'chef pinch grip',
+      'chef knife grip',
+    ]);
+  });
+
+  it('never leaves out the hobby, which is what keeps a search on topic', () => {
+    // "warrior one pose" without "yoga" finds military Warrior Games photos.
+    expect(searchQueries('warrior one yoga pose', 'Yoga')).not.toContain('warrior one pose');
+    expect(searchQueries('guitar sitting posture', 'Guitar')).toEqual([
       'guitar sitting posture',
       'guitar sitting posture diagram',
-      'sitting posture',
       'guitar posture',
       'guitar sitting',
     ]);
   });
 
-  it('stops at five searches', () => {
-    expect(searchQueries('classical guitar sitting posture close up')).toHaveLength(5);
+  it('names the hobby alongside the technique when the phrase does not', () => {
+    expect(searchQueries('downward dog hand placement', 'Yoga')).toContain('downward dog Yoga');
+    expect(searchQueries('warrior one yoga pose', 'Yoga')).not.toContain('warrior one Yoga');
+  });
+
+  it('stops at six searches', () => {
+    expect(searchQueries('classical guitar sitting posture close up', 'Guitar')).toHaveLength(6);
   });
 
   it('does not ask for a diagram of what is already one', () => {
-    expect(searchQueries('E minor chord diagram')).not.toContain('E minor chord diagram diagram');
+    expect(searchQueries('E minor chord diagram', 'Guitar')).not.toContain('E minor chord diagram diagram');
   });
 
   it('does not shorten a phrase of two words, which would lose what it is about', () => {
-    expect(searchQueries(' chess  fork ')).toEqual(['chess fork', 'chess fork diagram']);
+    expect(searchQueries(' chess  fork ', 'Chess')).toEqual(['chess fork', 'chess fork diagram']);
+  });
+});
+
+describe('isRelevant', () => {
+  const keywords = keywordsOf('downward dog hand placement Yoga');
+
+  it('keeps a file named for the technique or the hobby', () => {
+    expect(isRelevant('File:Downward-Facing-Dog.JPG', keywords)).toBe(true);
+    expect(isRelevant('File:Joshua Tree yoga - warrior 1a.jpg', keywords)).toBe(true);
+  });
+
+  it('drops a file whose name shares no word with either', () => {
+    expect(isRelevant('File:Analyasis of Las Meninas.jpg', keywords)).toBe(false);
+    expect(isRelevant('File:US, partner forces begin live-fire training.jpg', keywords)).toBe(false);
+  });
+
+  it('matches across accents and word endings', () => {
+    const sauteing = keywordsOf('sautéing onions Cooking');
+
+    expect(isRelevant('File:Leek-Sauté.JPG', sauteing)).toBe(true);
+    expect(isRelevant('File:Sautee onions and peppers.jpg', sauteing)).toBe(true);
   });
 });
 
