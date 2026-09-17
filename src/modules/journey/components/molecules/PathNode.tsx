@@ -48,17 +48,8 @@ export function PathNode({
   const struck = state === 'struck';
   const showCta = current && Boolean(cta) && Boolean(onPress);
 
-  return (
-    <Pressable
-      // With its own button inside, the card is only a larger tap target: a
-      // second button role would nest a <button> in a <button> on web, and
-      // announce the same action twice to a screen reader.
-      accessibilityRole={onPress && !showCta ? 'button' : undefined}
-      accessibilityState={{ disabled: !onPress }}
-      disabled={!onPress}
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed ? styles.pressed : null]}
-    >
+  const content = (
+    <>
       <View style={styles.rail}>
         <Marker state={state} />
         {last ? null : <View style={[styles.line, state === 'mastered' ? styles.lineDone : null]} />}
@@ -108,6 +99,23 @@ export function PathNode({
           </>
         )}
       </View>
+    </>
+  );
+
+  // A card with its own button is not pressable itself: the button is the one
+  // control, so only it gives press feedback, and web gets no <button> nested
+  // in a <button>.
+  if (showCta) return <View style={styles.row}>{content}</View>;
+
+  return (
+    <Pressable
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityState={{ disabled: !onPress }}
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed ? styles.pressed : null]}
+    >
+      {content}
     </Pressable>
   );
 }
